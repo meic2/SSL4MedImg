@@ -1,0 +1,8 @@
+# ignore ALL .log files
+*.log
+# ignore ALL auto-produced files
+model/
+data/
+
+**/__pycache__/
+**/**/__pycache__/
