@@ -301,6 +301,7 @@ def train(args, snapshot_path):
             if iter_num > 0 and iter_num % 200 == 0: #default to be 200
                 model1.eval()
                 metric_list = 0.0
+
                 for i_batch, sampled_batch in enumerate(valloader):
                     metric_i = test_single_volume(
                         sampled_batch["image"], sampled_batch["label"].squeeze(1), model1, classes=num_classes, patch_size=args.patch_size)
@@ -311,17 +312,20 @@ def train(args, snapshot_path):
                                       metric_list[class_i, 0], iter_num)
                     writer.add_scalar('info/model1_val_{}_hd95'.format(class_i+1),
                                       metric_list[class_i, 1], iter_num)
+                    writer.add_scalar('infor/model1_val_{}_iou'.format(class_i+1), 
+                                      metric_list[class_i, 2], iter_num)
 
                 performance1 = np.mean(metric_list, axis=0)[0]
 
                 mean_hd951 = np.mean(metric_list, axis=0)[1]
+                mean_iou1 = np.mean(metric_list, axis=0)[2]
                 writer.add_scalar('info/model1_val_mean_dice',
                                   performance1, iter_num)
                 writer.add_scalar('info/model1_val_mean_hd95',
                                   mean_hd951, iter_num)
-
-                if performance1 > best_performance1:
-                    best_performance1 = performance1
+                # change to mean_iou as val standards
+                if mean_iou1 > best_performance1:
+                    best_performance1 = mean_iou1
                     save_mode_path = os.path.join(snapshot_path,
                                                   'model1_iter_{}_dice_{}.pth'.format(
                                                       iter_num, round(best_performance1, 4)))
@@ -331,7 +335,7 @@ def train(args, snapshot_path):
                     torch.save(model1.state_dict(), save_best)
 
                 logging.info(
-                    'iteration %d : model1_mean_dice : %f model1_mean_hd95 : %f' % (iter_num, performance1, mean_hd951))
+                    'iteration %d : model1_mean_dice : %f model1_mean_hd95 : %f model1_mean_iou : %f' % (iter_num, performance1, mean_hd951, mean_iou1))
                 model1.train()
 
                 model2.eval()
@@ -347,17 +351,22 @@ def train(args, snapshot_path):
                                       metric_list[class_i, 0], iter_num)
                     writer.add_scalar('info/model2_val_{}_hd95'.format(class_i+1),
                                       metric_list[class_i, 1], iter_num)
+                    writer.add_scalar('infor/model2_val_{}_iou'.format(class_i+1), 
+                                      metric_list[class_i, 2], iter_num)
 
                 performance2 = np.mean(metric_list, axis=0)[0]
 
                 mean_hd952 = np.mean(metric_list, axis=0)[1]
+                mean_iou2 = np.mean(metric_list, axis=0)[2]
                 writer.add_scalar('info/model2_val_mean_dice',
                                   performance2, iter_num)
                 writer.add_scalar('info/model2_val_mean_hd95',
                                   mean_hd952, iter_num)
+                writer.add_scalar('info/model2_val_mean_iou',
+                                  mean_iou1, iter_num)
 
-                if performance2 > best_performance2:
-                    best_performance2 = performance2
+                if mean_iou2 > best_performance2:
+                    best_performance2 = mean_iou2
                     save_mode_path = os.path.join(snapshot_path,
                                                   'model2_iter_{}_dice_{}.pth'.format(
                                                       iter_num, round(best_performance2, 4)))
@@ -367,7 +376,7 @@ def train(args, snapshot_path):
                     torch.save(model2.state_dict(), save_best)
 
                 logging.info(
-                    'iteration %d : model2_mean_dice : %f model2_mean_hd95 : %f' % (iter_num, performance2, mean_hd952))
+                    'iteration %d : model2_mean_dice : %f model2_mean_hd95 : %f model2_mean_iou : %f' % (iter_num, performance2, mean_hd952, mean_iou2))
                 model2.train()
 
             if iter_num % 3000 == 0:

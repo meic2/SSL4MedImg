@@ -1,0 +1,175 @@
+=> merge config from ../code/configs/swin_tiny_patch4_window7_224_lite.yaml
+=> merge config from ../code/configs/swin_tiny_patch4_window7_224_lite.yaml
+True
+Namespace(root_path='../../dataset/Dermofit', exp='Dermofit/Cross_Teaching_Between_CNN_Transformer', model='unet', max_iterations=10000, batch_size=16, deterministic=1, base_lr=0.01, patch_size=[480, 480], seed=1234, num_classes=2, cfg='../code/configs/swin_tiny_patch4_window7_224_lite.yaml', opts=None, zip=False, cache_mode='part', resume=None, accumulation_steps=None, use_checkpoint=False, amp_opt_level='O1', tag=None, eval=False, throughput=False, labeled_bs=8, labeled_num=7, ema_decay=0.99, consistency_type='mse', consistency=0.1, consistency_rampup=200.0)
+/ext3/miniconda3/envs/ssl/lib/python3.9/site-packages/torch/functional.py:445: UserWarning: torch.meshgrid: in an upcoming release, it will be required to pass the indexing argument. (Triggered internally at  /opt/conda/conda-bld/pytorch_1640811803361/work/aten/src/ATen/native/TensorShape.cpp:2157.)
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+/ext3/miniconda3/envs/ssl/lib/python3.9/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 4 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  warnings.warn(_create_warning_msg(
+AMP_OPT_LEVEL: O1
+AUG:
+  AUTO_AUGMENT: rand-m9-mstd0.5-inc1
+  COLOR_JITTER: 0.4
+  CUTMIX: 1.0
+  CUTMIX_MINMAX: None
+  MIXUP: 0.8
+  MIXUP_MODE: batch
+  MIXUP_PROB: 1.0
+  MIXUP_SWITCH_PROB: 0.5
+  RECOUNT: 1
+  REMODE: pixel
+  REPROB: 0.25
+BASE: ['']
+DATA:
+  BATCH_SIZE: 16
+  CACHE_MODE: part
+  DATASET: imagenet
+  DATA_PATH: 
+  IMG_SIZE: 480
+  INTERPOLATION: bicubic
+  NUM_WORKERS: 8
+  PIN_MEMORY: True
+  ZIP_MODE: False
+EVAL_MODE: False
+LOCAL_RANK: 0
+MODEL:
+  DROP_PATH_RATE: 0.2
+  DROP_RATE: 0.0
+  LABEL_SMOOTHING: 0.1
+  NAME: swin_tiny_patch4_window7_224
+  NUM_CLASSES: 1000
+  PRETRAIN_CKPT: ../code/pretrained_ckpt/swin_tiny_patch4_window7_224.pth
+  RESUME: 
+  SWIN:
+    APE: False
+    DECODER_DEPTHS: [2, 2, 2, 1]
+    DEPTHS: [2, 2, 2, 2]
+    EMBED_DIM: 96
+    FINAL_UPSAMPLE: expand_first
+    IN_CHANS: 3
+    MLP_RATIO: 4.0
+    NUM_HEADS: [3, 6, 12, 24]
+    PATCH_NORM: True
+    PATCH_SIZE: 4
+    QKV_BIAS: True
+    QK_SCALE: None
+    WINDOW_SIZE: 5
+  TYPE: swin
+OUTPUT: 
+PRINT_FREQ: 10
+SAVE_FREQ: 1
+SEED: 0
+TAG: default
+TEST:
+  CROP: True
+THROUGHPUT_MODE: False
+TRAIN:
+  ACCUMULATION_STEPS: 0
+  AUTO_RESUME: True
+  BASE_LR: 0.0005
+  CLIP_GRAD: 5.0
+  EPOCHS: 300
+  LR_SCHEDULER:
+    DECAY_EPOCHS: 30
+    DECAY_RATE: 0.1
+    NAME: cosine
+  MIN_LR: 5e-06
+  OPTIMIZER:
+    BETAS: (0.9, 0.999)
+    EPS: 1e-08
+    MOMENTUM: 0.9
+    NAME: adamw
+  START_EPOCH: 0
+  USE_CHECKPOINT: False
+  WARMUP_EPOCHS: 20
+  WARMUP_LR: 5e-07
+  WEIGHT_DECAY: 0.05
+SwinTransformerSys expand initial----depths:[2, 2, 2, 2];depths_decoder:[1, 2, 2, 2];drop_path_rate:0.2;num_classes:2
+---final upsample expand_first---
+pretrained_path:../code/pretrained_ckpt/swin_tiny_patch4_window7_224.pth
+---start load pretrained modle of swin encoder---
+delete:layers.0.blocks.0.attn.relative_position_index;shape pretrain:torch.Size([768, 1536]);shape model:torch.Size([25, 25])
+delete:layers.0.blocks.1.attn.relative_position_index;shape pretrain:torch.Size([768, 1536]);shape model:torch.Size([25, 25])
+delete:layers.1.blocks.0.attn.relative_position_index;shape pretrain:torch.Size([768, 1536]);shape model:torch.Size([25, 25])
+delete:layers.1.blocks.1.attn.relative_position_index;shape pretrain:torch.Size([768, 1536]);shape model:torch.Size([25, 25])
+delete:layers.2.blocks.0.attn.relative_position_index;shape pretrain:torch.Size([768, 1536]);shape model:torch.Size([25, 25])
+delete:layers.2.blocks.1.attn.relative_position_index;shape pretrain:torch.Size([768, 1536]);shape model:torch.Size([25, 25])
+delete:layers.3.blocks.0.attn.relative_position_index;shape pretrain:torch.Size([768, 1536]);shape model:torch.Size([25, 25])
+delete:layers.3.blocks.1.attn.relative_position_index;shape pretrain:torch.Size([768, 1536]);shape model:torch.Size([25, 25])
+delete:layers.0.blocks.1.attn_mask;shape pretrain:torch.Size([768, 1536]);shape model:torch.Size([576, 25, 25])
+delete:layers.1.blocks.1.attn_mask;shape pretrain:torch.Size([768, 1536]);shape model:torch.Size([144, 25, 25])
+delete:layers.2.blocks.1.attn_mask;shape pretrain:torch.Size([768, 1536]);shape model:torch.Size([36, 25, 25])
+delete:layers.0.blocks.0.attn.relative_position_bias_table;shape pretrain:torch.Size([768, 1536]);shape model:torch.Size([81, 3])
+delete:layers.0.blocks.1.attn.relative_position_bias_table;shape pretrain:torch.Size([768, 1536]);shape model:torch.Size([81, 3])
+delete:layers.1.blocks.0.attn.relative_position_bias_table;shape pretrain:torch.Size([768, 1536]);shape model:torch.Size([81, 6])
+delete:layers.1.blocks.1.attn.relative_position_bias_table;shape pretrain:torch.Size([768, 1536]);shape model:torch.Size([81, 6])
+delete:layers.2.blocks.0.attn.relative_position_bias_table;shape pretrain:torch.Size([768, 1536]);shape model:torch.Size([81, 12])
+delete:layers.2.blocks.1.attn.relative_position_bias_table;shape pretrain:torch.Size([768, 1536]);shape model:torch.Size([81, 12])
+delete:layers.3.blocks.0.attn.relative_position_bias_table;shape pretrain:torch.Size([768, 1536]);shape model:torch.Size([81, 24])
+delete:layers.3.blocks.1.attn.relative_position_bias_table;shape pretrain:torch.Size([768, 1536]);shape model:torch.Size([81, 24])
+delete:layers_up.3.blocks.0.attn.relative_position_index;shape pretrain:torch.Size([768, 1536]);shape model:torch.Size([25, 25])
+delete:layers_up.3.blocks.1.attn.relative_position_index;shape pretrain:torch.Size([768, 1536]);shape model:torch.Size([25, 25])
+delete:layers_up.2.blocks.0.attn.relative_position_index;shape pretrain:torch.Size([768, 1536]);shape model:torch.Size([25, 25])
+delete:layers_up.2.blocks.1.attn.relative_position_index;shape pretrain:torch.Size([768, 1536]);shape model:torch.Size([25, 25])
+delete:layers_up.1.blocks.0.attn.relative_position_index;shape pretrain:torch.Size([768, 1536]);shape model:torch.Size([25, 25])
+delete:layers_up.1.blocks.1.attn.relative_position_index;shape pretrain:torch.Size([768, 1536]);shape model:torch.Size([25, 25])
+delete:layers_up.3.blocks.1.attn_mask;shape pretrain:torch.Size([768, 1536]);shape model:torch.Size([576, 25, 25])
+delete:layers_up.2.blocks.1.attn_mask;shape pretrain:torch.Size([768, 1536]);shape model:torch.Size([144, 25, 25])
+delete:layers_up.1.blocks.1.attn_mask;shape pretrain:torch.Size([768, 1536]);shape model:torch.Size([36, 25, 25])
+delete:layers_up.3.blocks.0.attn.relative_position_bias_table;shape pretrain:torch.Size([768, 1536]);shape model:torch.Size([81, 3])
+delete:layers_up.3.blocks.1.attn.relative_position_bias_table;shape pretrain:torch.Size([768, 1536]);shape model:torch.Size([81, 3])
+delete:layers_up.2.blocks.0.attn.relative_position_bias_table;shape pretrain:torch.Size([768, 1536]);shape model:torch.Size([81, 6])
+delete:layers_up.2.blocks.1.attn.relative_position_bias_table;shape pretrain:torch.Size([768, 1536]);shape model:torch.Size([81, 6])
+delete:layers_up.1.blocks.0.attn.relative_position_bias_table;shape pretrain:torch.Size([768, 1536]);shape model:torch.Size([81, 12])
+delete:layers_up.1.blocks.1.attn.relative_position_bias_table;shape pretrain:torch.Size([768, 1536]);shape model:torch.Size([81, 12])
+one_type = AK, total count of instances = 45
+one_type = ALLSCC, total count of instances = 88
+one_type = ALLMEL, total count of instances = 76
+one_type = ALLBCC, total count of instances = 239
+one_type = ALLSK, total count of instances = 257
+one_type = ALLIEC, total count of instances = 78
+one_type = ALLML, total count of instances = 331
+one_type = ALLDF, total count of instances = 65
+one_type = PYO, total count of instances = 24
+one_type = ALLVASC, total count of instances = 97
+
+train data: 1036
+validation data: 130
+test data: 134
+Total silices is: 1036, labeled slices is: 136
+17 iterations per epoch
+  0%|                                         | 0/589 [00:00<?, ?it/s]  0%|                                         | 0/589 [00:09<?, ?it/s]
+Traceback (most recent call last):
+  File "/scratch/mc8895/SSL4SL/code/train_cross_teaching_between_cnn_transformer_2D.py", line 422, in <module>
+    train(args, snapshot_path)
+  File "/scratch/mc8895/SSL4SL/code/train_cross_teaching_between_cnn_transformer_2D.py", line 237, in train
+    outputs2 = model2(volume_batch)
+  File "/ext3/miniconda3/envs/ssl/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1102, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/scratch/mc8895/SSL4SL/code/networks/vision_transformer.py", line 51, in forward
+    logits = self.swin_unet(x)
+  File "/ext3/miniconda3/envs/ssl/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1102, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/scratch/mc8895/SSL4SL/code/networks/swin_transformer_unet_skip_expand_decoder_sys.py", line 790, in forward
+    x = self.forward_up_features(x, x_downsample)
+  File "/scratch/mc8895/SSL4SL/code/networks/swin_transformer_unet_skip_expand_decoder_sys.py", line 769, in forward_up_features
+    x = layer_up(x)
+  File "/ext3/miniconda3/envs/ssl/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1102, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/scratch/mc8895/SSL4SL/code/networks/swin_transformer_unet_skip_expand_decoder_sys.py", line 542, in forward
+    x = blk(x)
+  File "/ext3/miniconda3/envs/ssl/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1102, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/scratch/mc8895/SSL4SL/code/networks/swin_transformer_unet_skip_expand_decoder_sys.py", line 286, in forward
+    x = x + self.drop_path(self.mlp(self.norm2(x)))
+  File "/ext3/miniconda3/envs/ssl/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1102, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/scratch/mc8895/SSL4SL/code/networks/swin_transformer_unet_skip_expand_decoder_sys.py", line 21, in forward
+    x = self.act(x)
+  File "/ext3/miniconda3/envs/ssl/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1102, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/ext3/miniconda3/envs/ssl/lib/python3.9/site-packages/torch/nn/modules/activation.py", line 652, in forward
+    return F.gelu(input)
+  File "/ext3/miniconda3/envs/ssl/lib/python3.9/site-packages/torch/nn/functional.py", line 1556, in gelu
+    return torch._C._nn.gelu(input)
+RuntimeError: CUDA out of memory. Tried to allocate 170.00 MiB (GPU 0; 15.78 GiB total capacity; 13.93 GiB already allocated; 84.19 MiB free; 14.28 GiB reserved in total by PyTorch) If reserved memory is >> allocated memory try setting max_split_size_mb to avoid fragmentation.  See documentation for Memory Management and PYTORCH_CUDA_ALLOC_CONF

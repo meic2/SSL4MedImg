@@ -2,17 +2,28 @@ import numpy as np
 import torch
 from medpy import metric
 from scipy.ndimage import zoom
+import segmentation_models_pytorch as smp
 
+def calculate_metric_iou(pred, label):
+    pred = torch.tensor(pred)
+    label = torch.tensor(label)
+    tp, fp, fn, tn = smp.metrics.get_stats(pred, label.long(), mode='multilabel', threshold=0.5)
+    # accuracy = smp.metrics.accuracy(tp, fp, fn, tn, reduction="macro")
+    iou_score = smp.metrics.iou_score(tp, fp, fn, tn, reduction="micro")
+    return iou_score
 
 def calculate_metric_percase(pred, gt):
+    iou = calculate_metric_iou(pred, gt)
+    pred = pred == 1
+    gt = gt == 1
     pred[pred > 0] = 1
     gt[gt > 0] = 1
     if pred.sum() > 0:
         dice = metric.binary.dc(pred, gt)
         hd95 = metric.binary.hd95(pred, gt)
-        return dice, hd95
+        return dice, hd95, iou
     else:
-        return 0, 0
+        return 0, 0, iou
 
 
 def test_single_volume(image, label, net, classes, patch_size=[256, 256]):
@@ -33,9 +44,9 @@ def test_single_volume(image, label, net, classes, patch_size=[256, 256]):
         pred = zoom(out, (x / patch_size[0], y / patch_size[1]), order=0)
         prediction = pred
     metric_list = []
-    for i in range(1, classes):
-        metric_list.append(calculate_metric_percase(
-            prediction == i, label == i))
+    # for i in range(1, classes):
+    metric_list.append(calculate_metric_percase(prediction, label))
+    # metric_list.append(calculate_metric_iou(prediction, label))
     return metric_list
 
 
