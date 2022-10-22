@@ -14,16 +14,17 @@ def calculate_metric_iou(pred, label):
 
 def calculate_metric_percase(pred, gt):
     iou = calculate_metric_iou(pred, gt)
-    pred = pred == 1
-    gt = gt == 1
-    pred[pred > 0] = 1
-    gt[gt > 0] = 1
+    bool_pred = pred == 1
+    bool_gt = gt == 1
+    bool_pred[bool_pred > 0] = 1
+    bool_gt[bool_gt > 0] = 1
     if pred.sum() > 0:
-        dice = metric.binary.dc(pred, gt)
-        hd95 = metric.binary.hd95(pred, gt)
+        dice = metric.binary.dc(bool_pred, bool_gt)
+        hd95 = metric.binary.hd95(bool_pred, bool_gt) if bool_gt.sum()>0 else 0
+        iou = calculate_metric_iou(pred, gt)
         return dice, hd95, iou
     else:
-        return 0, 0, iou
+        return 0, 0, 0
 
 
 def test_single_volume(image, label, net, classes, patch_size=[256, 256]):

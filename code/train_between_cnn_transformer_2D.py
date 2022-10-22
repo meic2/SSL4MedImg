@@ -92,7 +92,7 @@ parser.add_argument('--throughput', action='store_true',
                     help='Test throughput only')
 
 # label and unlabel
-parser.add_argument('--labeled_bs', type=int, default=8,
+parser.add_argument('--labeled_bs', type=int, default=16,
                     help='labeled_batch_size per gpu')
 parser.add_argument('--labeled_num', type=int, default=7,
                     help='labeled data')
@@ -107,14 +107,9 @@ parser.add_argument('--consistency_rampup', type=float,
 args = parser.parse_args()
 config = get_config(args)
 
-
-DATA_PATH = '../../dataset/Dermofit/original_data/'
-TILE_IMAGE_PATH = '../../dataset/Dermofit_resize_noTiling/resize_image/'
-TILE_LABEL_PATH = '../../dataset/Dermofit_resize_noTiling/resize_label/'
-if "Dermatomyositis" in args.root_path:
-    DATA_PATH = '../../dataset/Dermatomyositis/original_data/'
-    TILE_IMAGE_PATH = '../../dataset/Dermatomyositis/tile_Image/'
-    TILE_LABEL_PATH = '../../dataset/Dermatomyositis/tile_label/'
+data_path = '../../dataset/Dermofit/original_data/'
+tile_image_path = '../../dataset/Dermofit_resize_noTiling/resize_image/'
+tile_label_path = '../../dataset/Dermofit_resize_noTiling/resize_label/'
 
 
 print(torch.cuda.is_available())
@@ -147,9 +142,6 @@ def patients_to_slices(dataset, patiens_num):
         # test number for now 
         ref_dict = {"3": 68, "7": 136,
                     "14": 256, "21": 396, "28": 512, "35": 664, "140": 1312}
-    elif "Dermatomyositis" in dataset:
-        ref_dict = {"3": 68, "7": 136,
-                    "14": 256, "21": 396, "28": 512, "35": 664, "140": 1312}
     elif "Prostate":
         ref_dict = {"2": 27, "4": 53, "8": 120,
                     "12": 179, "16": 256, "21": 312, "42": 623}
@@ -178,7 +170,7 @@ def train(args, snapshot_path):
 
     def create_model(ema=False):
         # Network definition
-        model = net_factory(net_type=args.model, in_chns=3 if "Dermofit" in args.root_path else 1, 
+        model = net_factory(net_type=args.model, in_chns=3,
                             class_num=num_classes)
         if ema:
             for param in model.parameters():
@@ -198,7 +190,7 @@ def train(args, snapshot_path):
     #     RandomGenerator(args.patch_size)
     # ]))
     # db_val = BaseDataSets(base_dir=args.root_path, split="val")
-    db_train, db_val, db_test = build_dataloader_ssl(DATA_PATH, TILE_IMAGE_PATH, TILE_LABEL_PATH, "Dermofit" in args.root_path)
+    db_train, db_val, db_test = build_dataloader_ssl(data_path, tile_image_path, tile_label_path)
 
     total_slices = len(db_train)
     labeled_slice = patients_to_slices(args.root_path, args.labeled_num)
@@ -326,7 +318,7 @@ def train(args, snapshot_path):
                 performance1 = np.mean(metric_list, axis=0)[0]
 
                 mean_hd951 = np.mean(metric_list, axis=0)[1]
-                mean_iou1 = np.mean([tup[2] for tup in metric_list if not np.isnan(tup[2])])
+                mean_iou1 = np.mean(metric_list, axis=0)[2]
                 writer.add_scalar('info/model1_val_mean_dice',
                                   performance1, iter_num)
                 writer.add_scalar('info/model1_val_mean_hd95',
@@ -365,7 +357,7 @@ def train(args, snapshot_path):
                 performance2 = np.mean(metric_list, axis=0)[0]
 
                 mean_hd952 = np.mean(metric_list, axis=0)[1]
-                mean_iou2 = np.mean([tup[2] for tup in metric_list if not np.isnan(tup[2])])
+                mean_iou2 = np.mean(metric_list, axis=0)[2]
                 writer.add_scalar('info/model2_val_mean_dice',
                                   performance2, iter_num)
                 writer.add_scalar('info/model2_val_mean_hd95',
