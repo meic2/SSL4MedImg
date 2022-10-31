@@ -6,6 +6,7 @@ import os
 import itertools
 import random
 from scipy import ndimage
+import logging
 
 class RandomGenerator(object):
     def __init__(self, isRnorm):
@@ -107,7 +108,7 @@ def build_dataloader(data_path, tile_image_path, tile_label_path,
         
             type_all_instances = os.listdir(data_path + one_type + '/')
             type_total_count = len(type_all_instances)
-            print(f"one_type = {one_type}, total count of instances = {type_total_count}")
+            logging.info(f"one_type = {one_type}, total count of instances = {type_total_count}")
             # print(type_all_instances) ['B643', 'A75', 'P374', 'B666', 'D379',...]
 
             train_lis += [one_type + '_' + i for i in type_all_instances[:int(type_total_count*train_percent)]]
@@ -139,26 +140,48 @@ def build_dataloader(data_path, tile_image_path, tile_label_path,
         label_file = os.listdir(data_path+"Labels/CD27_cell_labels/")
         mask_label_file = os.listdir(data_path+"Labels/CD27_cell_labels/Mask_Labels/")
         selected_data = set([_[:-9] for _ in data_file]).intersection(set([_[:-11] for _ in label_file])).intersection(set([_[:-17] for _ in mask_label_file]))
-        # print("Length of selected data: ", len(selected_data))
-
+        print("Length of selected data: ", len(selected_data))
+        # print(f"selected_data[:5]: {list(selected_data)[:5]}")
+        ###### for TilingOnly ######
         train_list = [[(_ + '_data_' + str(idx) + '.npy',  _ + '_mask_' + str(idx) + '.npy') for idx in range(12)] 
                     for _ in selected_data if _[:13] in ['121919_Myo089', '121919_Myo253', '121919_Myo368']]
         validation_list = [[(_ + '_data_' + str(idx) + '.npy', _ + '_mask_' + str(idx) + '.npy') for idx in range(12)] 
                         for _ in selected_data if _[:13] in ['121919_Myo208', '121919_Myo388']]
         test_list = [[(_ + '_data_' + str(idx) + '.npy', _ + '_mask_' + str(idx) + '.npy') for idx in range(12)] 
                     for _ in selected_data if _[:13] in ['121919_Myo231', '121919_Myo511']]
-                    
+        ############
+        ###### for InterpolateOnly ######
+        # train_list = [[(_ + '_data.npy',  _ + '_mask.npy')]
+        #             for _ in selected_data if _[:13] in ['121919_Myo089', '121919_Myo253', '121919_Myo368']]
+        # validation_list = [[(_ + '_data.npy',  _ + '_mask.npy')]
+        #                 for _ in selected_data if _[:13] in ['121919_Myo208', '121919_Myo388']]
+        # test_list = [[(_ + '_data.npy',  _ + '_mask.npy')]
+        #             for _ in selected_data if _[:13] in ['121919_Myo231', '121919_Myo511']]
+        ############       
     train_list = list(itertools.chain(*train_list))
     validation_list = list(itertools.chain(*validation_list))
     test_list = list(itertools.chain(*test_list))
 
-    print('\ntrain data: {}'.format(len(train_list)))
-    print('validation data: {}'.format(len(validation_list)))
-    print('test data: {}'.format(len(test_list)))
+    ## make sure the split has no overlap
+    assert len(set(train_lis).intersection(set(validation_lis))) == 0
+    assert len(set(train_lis).intersection(set(test_lis))) == 0
+    assert len(set(validation_lis).intersection(set(test_lis))) == 0
+    
+    # print(f"train_list[:5]: {train_list[0]}, \n validation_list[:5]: {validation_list[:5]}, \n test_list[:5]: {test_list[:5]}")
+    # print('\ntrain data: {}'.format(len(train_list)))
+    # print('validation data: {}'.format(len(validation_list)))
+    # print('test data: {}'.format(len(test_list)))
+    logging.info('train data: {}'.format(len(train_list)))
+    logging.info('validation data: {}'.format(len(validation_list)))
+    logging.info('test data: {}'.format(len(test_list)))
 
     return CustomDataset(train_list, tile_image_path, tile_label_path, transform=transform_train, mode='train'), \
             CustomDataset(validation_list, tile_image_path, tile_label_path, transform=transform_val, mode='validation'), \
-            CustomDataset(test_list, tile_image_path, tile_label_path, transform=transform_test, mode='test')
+            CustomDataset(test_list, tile_image_path, tile_label_path, transform=transform_test, mode='test'), \
+            train_list, \
+            validation_list, \
+            test_list
+            
 
 def build_dataloader_ssl(data_path, tile_image_path, tile_label_path, isDermorfit):
     transform_train = transforms.Compose([
@@ -176,9 +199,11 @@ def build_dataloader_ssl(data_path, tile_image_path, tile_label_path, isDermorfi
 if __name__ == '__main__':
 
  ''' data files '''
- data_path = '../../../dataset/Dermofit/original_data/'
- tile_image_path = '../../../dataset/Dermofit_resize_noTiling/resize_image'
- tile_label_path = '../../../dataset/Dermofit_resize_noTiling/resize_label'
+ DATA_PATH = '../../dataset/Dermatomyositis/original_data/'
+ TILE_IMAGE_PATH = '../../dataset/Dermatomyositis/tile_image/'
+ TILE_LABEL_PATH = '../../dataset/Dermatomyositis/tile_label/'
  
- train_list, validation_list, test_list = build_dataloader(data_path, tile_image_path, tile_label_path)
- print(train_list)
+ train_loader, validation_laoder, test_loader = build_dataloader(DATA_PATH, TILE_IMAGE_PATH, TILE_LABEL_PATH, 
+                                                           transform_train = None, transform_val = None, transform_test = None,
+                                                           isDermorfit = 'Dermofit' in DATA_PATH)
+ 
