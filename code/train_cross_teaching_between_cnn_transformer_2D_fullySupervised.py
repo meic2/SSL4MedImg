@@ -46,9 +46,9 @@ from val_2D import test_single_volume
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--root_path', type=str,
-                    default='../../DEDL_dataset/Dermofit', help='Name of Experiment')
+                    default='../../dataset/Dermatomyositis', help='Name of Experiment')
 parser.add_argument('--exp', type=str,
-                    default='Dermofit/Cross_Teaching_CNN_Transformer', help='experiment_name')
+                    default='Dermofit/CT_Between_CNN_Transformer', help='experiment_name')
 parser.add_argument('--model', type=str,
                     default='unet', help='model_name')
 parser.add_argument('--max_iterations', type=int,
@@ -106,9 +106,8 @@ parser.add_argument('--consistency_rampup', type=float,
                     default=200.0, help='consistency_rampup')
 args = parser.parse_args()
 config = get_config(args)
-print(args)
 
-data_class = 1
+
 DATA_PATH = '../../dataset/Dermofit/original_data/'
 TILE_IMAGE_PATH = '../../dataset/Dermofit_resize_noTiling/resize_image/'
 TILE_LABEL_PATH = '../../dataset/Dermofit_resize_noTiling/resize_label/'
@@ -116,12 +115,7 @@ if "Dermatomyositis" in args.root_path:
     DATA_PATH = '../../dataset/Dermatomyositis/original_data/'
     TILE_IMAGE_PATH = '../../dataset/Dermatomyositis/tile_image/'
     TILE_LABEL_PATH = '../../dataset/Dermatomyositis/tile_label/'
-    data_class = 2
-elif "Dermato_interpolated" in args.root_path:
-    DATA_PATH = '../../dataset/Dermatomyositis/original_data/'
-    TILE_IMAGE_PATH = '../../dataset/Dermatomyositis/interpolated_image/'
-    TILE_LABEL_PATH = '../../dataset/Dermatomyositis/interpolated_label/'
-    data_class = 3
+
 
 print(torch.cuda.is_available())
 def kaiming_normal_init_weight(model):
@@ -150,14 +144,12 @@ def patients_to_slices(dataset, patiens_num):
         ref_dict = {"3": 68, "7": 136,
                     "14": 256, "21": 396, "28": 512, "35": 664, "140": 1312}
     elif "Dermofit" in dataset:
+        # test number for now 
         ref_dict = {"3": 68, "7": 136,
-                    "14": 256, "21": 396, "28": 512, "35": 664, "140": 1312}
+                    "14": 256, "21": 396, "28": 512, "35": 664, "140": 1036}
     elif "Dermatomyositis" in dataset:
         ref_dict = {"3": 68, "7": 136,
-                    "14": 256, "21": 396, "28": 512, "35": 664, "140": 1312}
-    elif  "Dermato_interpolated" in dataset:
-        ref_dict = {"3": 68, "7": 136,
-                    "14": 256, "21": 396, "28": 512, "35": 664, "140": 1312} # 1452 if TilingOnly, 121 if InterpolateOnly
+                    "14": 256, "21": 396, "28": 512, "35": 664, "140": 1452} # 1452 if TilingOnly, 121 if InterpolateOnly
     elif "Prostate":
         ref_dict = {"2": 27, "4": 53, "8": 120,
                     "12": 179, "16": 256, "21": 312, "42": 623}
@@ -206,7 +198,7 @@ def train(args, snapshot_path):
     #     RandomGenerator(args.patch_size)
     # ]))
     # db_val = BaseDataSets(base_dir=args.root_path, split="val")
-    db_train, db_val, db_test,  _, _, _ = build_dataloader_ssl(DATA_PATH, TILE_IMAGE_PATH, TILE_LABEL_PATH, data_class)
+    db_train, db_val, db_test, _, _, _ = build_dataloader_ssl(DATA_PATH, TILE_IMAGE_PATH, TILE_LABEL_PATH, "Dermofit" in args.root_path)
 
     total_slices = len(db_train)
     labeled_slice = patients_to_slices(args.root_path, args.labeled_num)
@@ -274,8 +266,8 @@ def train(args, snapshot_path):
             pseudo_supervision2 = dice_loss(
                 outputs_soft2[args.labeled_bs:], pseudo_outputs1.unsqueeze(1))
 
-            model1_loss = loss1 + consistency_weight * pseudo_supervision1
-            model2_loss = loss2 + consistency_weight * pseudo_supervision2
+            model1_loss = loss1 #+ consistency_weight * pseudo_supervision1
+            model2_loss = loss2 #+ consistency_weight * pseudo_supervision2
 
             loss = model1_loss + model2_loss
 
@@ -318,7 +310,7 @@ def train(args, snapshot_path):
                 labs = label_batch[1, ...].unsqueeze(0) * 50
                 writer.add_image('train/GroundTruth', labs, iter_num)
 
-            if iter_num > 0 and iter_num % 200 == 0: #default to be 200
+            if iter_num > 0 and iter_num % 10 == 0: #default to be 200
                 model1.eval()
                 metric_list = 0.0
 
@@ -338,7 +330,6 @@ def train(args, snapshot_path):
                 performance1 = np.mean(metric_list, axis=0)[0]
 
                 mean_hd951 = np.mean(metric_list, axis=0)[1]
-                
                 mean_iou1 = np.mean([tup[2] for tup in metric_list if not np.isnan(tup[2])])
                 writer.add_scalar('info/model1_val_mean_dice',
                                   performance1, iter_num)

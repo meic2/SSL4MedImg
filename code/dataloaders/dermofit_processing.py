@@ -6,6 +6,7 @@ import os
 import itertools
 import random
 from scipy import ndimage
+import logging
 
 class RandomGenerator(object):
     def __init__(self, isRnorm):
@@ -116,7 +117,7 @@ def build_dataloader(data_path, tile_image_path, tile_label_path,
         
             type_all_instances = os.listdir(data_path + one_type + '/')
             type_total_count = len(type_all_instances)
-            print(f"one_type = {one_type}, total count of instances = {type_total_count}")
+            logging.info(f"one_type = {one_type}, total count of instances = {type_total_count}")
             # print(type_all_instances) ['B643', 'A75', 'P374', 'B666', 'D379',...]
 
             train_lis += [one_type + '_' + i for i in type_all_instances[:int(type_total_count*train_percent)]]
@@ -172,7 +173,11 @@ def build_dataloader(data_path, tile_image_path, tile_label_path,
 
     return CustomDataset(train_list, tile_image_path, tile_label_path, transform=transform_train, mode='train'), \
             CustomDataset(validation_list, tile_image_path, tile_label_path, transform=transform_val, mode='validation'), \
-            CustomDataset(test_list, tile_image_path, tile_label_path, transform=transform_test, mode='test')
+            CustomDataset(test_list, tile_image_path, tile_label_path, transform=transform_test, mode='test'), \
+            train_list, \
+            validation_list, \
+            test_list
+            
 
 def build_dataloader_ssl(data_path, tile_image_path, tile_label_path, dataclass):
     '''
@@ -194,9 +199,11 @@ def build_dataloader_ssl(data_path, tile_image_path, tile_label_path, dataclass)
 if __name__ == '__main__':
 
  ''' data files '''
- data_path = '../../../dataset/Dermofit/original_data/'
- tile_image_path = '../../../dataset/Dermofit_resize_noTiling/resize_image'
- tile_label_path = '../../../dataset/Dermofit_resize_noTiling/resize_label'
+ DATA_PATH = '../../dataset/Dermatomyositis/original_data/'
+ TILE_IMAGE_PATH = '../../dataset/Dermatomyositis/tile_image/'
+ TILE_LABEL_PATH = '../../dataset/Dermatomyositis/tile_label/'
  
- train_list, validation_list, test_list = build_dataloader(data_path, tile_image_path, tile_label_path)
- print(train_list)
+ train_loader, validation_laoder, test_loader = build_dataloader(DATA_PATH, TILE_IMAGE_PATH, TILE_LABEL_PATH, 
+                                                           transform_train = None, transform_val = None, transform_test = None,
+                                                           isDermorfit = 'Dermofit' in DATA_PATH)
+ 
