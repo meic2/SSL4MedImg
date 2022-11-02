@@ -16,6 +16,20 @@ import torch.distributed as dist
 
 import networks
 
+def change_swin_unet_checkpoints(read_path, save_path):
+    """
+    Loads best model and return dictionary without DataParallel extra key prefix 
+    e.x.swin_unet.layers_up.3.blocks.0.mlp.fc1.weight.
+    """
+    state_dict = torch.load(read_path)
+    new_state_dict = {"model": {}}
+    for key in state_dict: 
+        if 'swin_unet' in key:
+            new_state_dict["model"][key[10:]] = state_dict[key]
+        else:
+            new_state_dict["model"][key] = state_dict[key]
+    torch.save(new_state_dict, save_path)
+
 # many issues with this function
 def load_model(path):
     """Loads model and return it without DataParallel table."""

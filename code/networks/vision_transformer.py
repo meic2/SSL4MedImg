@@ -84,7 +84,6 @@ class SwinUnet(nn.Module):
                         del full_dict[k]
 
             msg = self.swin_unet.load_state_dict(full_dict, strict=False)
-            # print(msg)
         else:
             print("none pretrain")
  

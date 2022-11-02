@@ -91,12 +91,21 @@ class CustomDataset(Dataset):
         return sample
 
 def build_dataloader(data_path, tile_image_path, tile_label_path, 
-                    transform_train, transform_val, transform_test, isDermorfit):
+                    transform_train, transform_val, transform_test, dataclass):
+    '''
+    @variable:
+        dataclass (int): Dermofit=1, tiled Dermatomyositis=2, interpolated Dermatomyositis=3
+    '''
 
     train_lis = []
     validation_lis = []
     test_lis = []
-    if isDermorfit:
+
+    train_list = []
+    validation_list = []
+    test_list = []
+    
+    if dataclass == 1:
         train_percent = 0.8
         validation_percent = 0.1
         ## remained 0.1 are test 
@@ -123,9 +132,6 @@ def build_dataloader(data_path, tile_image_path, tile_label_path,
         all_images = sorted(list(os.listdir(tile_image_path)))
         all_labels = sorted(list(os.listdir(tile_label_path)))
 
-        train_list = []
-        validation_list = []
-        test_list = []
 
         for image, label in zip(all_images, all_labels):
             if image[:-11] in train_lis:
@@ -134,24 +140,32 @@ def build_dataloader(data_path, tile_image_path, tile_label_path,
                 validation_list.append([(image, label)])
             elif image[:-11] in test_lis:
                 test_list.append([(image, label)])
-    else: # Dermatomyositis
+    else: 
+        # Dermatomyositis
+        print("here in Dermatomyositis")
         data_file = os.listdir(data_path+"CD27_Panel_Component/")
         label_file = os.listdir(data_path+"Labels/CD27_cell_labels/")
         mask_label_file = os.listdir(data_path+"Labels/CD27_cell_labels/Mask_Labels/")
         selected_data = set([_[:-9] for _ in data_file]).intersection(set([_[:-11] for _ in label_file])).intersection(set([_[:-17] for _ in mask_label_file]))
         # print("Length of selected data: ", len(selected_data))
+        if dataclass==2:
+            train_list = [[(_ + '_data_' + str(idx) + '.npy',  _ + '_mask_' + str(idx) + '.npy') for idx in range(12)] 
+                        for _ in selected_data if _[:13] in ['121919_Myo089', '121919_Myo253', '121919_Myo368']]
+            validation_list = [[(_ + '_data_' + str(idx) + '.npy', _ + '_mask_' + str(idx) + '.npy') for idx in range(12)] 
+                            for _ in selected_data if _[:13] in ['121919_Myo208', '121919_Myo388']]
+            test_list = [[(_ + '_data_' + str(idx) + '.npy', _ + '_mask_' + str(idx) + '.npy') for idx in range(12)] 
+                        for _ in selected_data if _[:13] in ['121919_Myo231', '121919_Myo511']]
+        if dataclass==3: #interpolation only contains one interpolated image per one raw image
+            train_list = [[(_ + '_data'  + '.npy',  _ + '_mask' + '.npy')]
+                        for _ in selected_data if _[:13] in ['121919_Myo089', '121919_Myo253', '121919_Myo368']]
+            validation_list = [[(_ + '_data' + '.npy', _ + '_mask' + '.npy')] 
+                            for _ in selected_data if _[:13] in ['121919_Myo208', '121919_Myo388']]
+            test_list = [[(_ + '_data' + '.npy', _ + '_mask' + '.npy')] 
+                        for _ in selected_data if _[:13] in ['121919_Myo231', '121919_Myo511']]
 
-        train_list = [[(_ + '_data_' + str(idx) + '.npy',  _ + '_mask_' + str(idx) + '.npy') for idx in range(12)] 
-                    for _ in selected_data if _[:13] in ['121919_Myo089', '121919_Myo253', '121919_Myo368']]
-        validation_list = [[(_ + '_data_' + str(idx) + '.npy', _ + '_mask_' + str(idx) + '.npy') for idx in range(12)] 
-                        for _ in selected_data if _[:13] in ['121919_Myo208', '121919_Myo388']]
-        test_list = [[(_ + '_data_' + str(idx) + '.npy', _ + '_mask_' + str(idx) + '.npy') for idx in range(12)] 
-                    for _ in selected_data if _[:13] in ['121919_Myo231', '121919_Myo511']]
-                    
     train_list = list(itertools.chain(*train_list))
     validation_list = list(itertools.chain(*validation_list))
     test_list = list(itertools.chain(*test_list))
-
     print('\ntrain data: {}'.format(len(train_list)))
     print('validation data: {}'.format(len(validation_list)))
     print('test data: {}'.format(len(test_list)))
@@ -160,9 +174,13 @@ def build_dataloader(data_path, tile_image_path, tile_label_path,
             CustomDataset(validation_list, tile_image_path, tile_label_path, transform=transform_val, mode='validation'), \
             CustomDataset(test_list, tile_image_path, tile_label_path, transform=transform_test, mode='test')
 
-def build_dataloader_ssl(data_path, tile_image_path, tile_label_path, isDermorfit):
+def build_dataloader_ssl(data_path, tile_image_path, tile_label_path, dataclass):
+    '''
+    @variable:
+        dataclass (int): Dermofit=1, tiled Dermatomyositis=2, interpolated Dermatomyositis=3
+    '''
     transform_train = transforms.Compose([
-        RandomGenerator(isDermorfit),
+        RandomGenerator(dataclass==1),
         ])
 
     transform_val=transforms.Compose([transforms.ToPILImage(),transforms.ToTensor()])
@@ -171,7 +189,7 @@ def build_dataloader_ssl(data_path, tile_image_path, tile_label_path, isDermorfi
     return build_dataloader(
         data_path, tile_image_path, tile_label_path, 
 
-        transform_train, transform_val, transform_test, isDermorfit)
+        transform_train, transform_val, transform_test, dataclass)
 
 if __name__ == '__main__':
 
