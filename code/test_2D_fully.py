@@ -21,7 +21,7 @@ from networks.vision_transformer import SwinUnet as ViT_seg
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--one_or_two', type=int, default=2,
+parser.add_argument('--one_or_two', type=int, default=None,
                     help = 'test CNN (if input 1) or Transformer(if input 2)')
 parser.add_argument('--root_path', type=str,
                     default='../../dataset/Dermatomyositis', help='Name of dataset')
@@ -99,6 +99,8 @@ def test_single_volume(sample, image_name, net, test_save_path, FLAGS):
     # image_name: str, eg: '121919_Myo231_[9554,43072]_component_data_0'
     image = sample['image']
     label = sample['label']
+    # print(image_name)
+
     # print(f"image.shape: {image.shape}, label.shape: {label.shape}") # image.shape: torch.Size([1, 480, 480]), label.shape: torch.Size([1, 480, 480])
     image = image.unsqueeze(0).to(device)
     label = label.squeeze(0).to(device)
@@ -126,15 +128,23 @@ def test_single_volume(sample, image_name, net, test_save_path, FLAGS):
     # second_metric = calculate_metric_percase(prediction == 2, label == 2)
     # third_metric = calculate_metric_percase(prediction == 3, label == 3)
 
-    img_itk = sitk.GetImageFromArray(image.cpu().detach().numpy().astype(np.float32))
-    img_itk.SetSpacing((1, 1, 10))
-    prd_itk = sitk.GetImageFromArray(prediction.cpu().detach().numpy().astype(np.float32))
-    prd_itk.SetSpacing((1, 1, 10))
-    lab_itk = sitk.GetImageFromArray(label.cpu().detach().numpy().astype(np.float32))
-    lab_itk.SetSpacing((1, 1, 10))
-    sitk.WriteImage(prd_itk, test_save_path + image_name + "_pred.nii.gz")
-    sitk.WriteImage(img_itk, test_save_path + image_name + "_img.nii.gz")
-    sitk.WriteImage(lab_itk, test_save_path + image_name + "_gt.nii.gz")
+    print(f"saving visualization to directory = {test_save_path}")
+    np.save(f'{test_save_path}{image_name}_data.npy', image.cpu().detach().numpy())
+    np.save(f'{test_save_path}{image_name}_mask.npy', label.cpu().detach().numpy())
+    np.save(f'{test_save_path}{image_name}_pred.npy', prediction.cpu().detach().numpy())
+
+    # img_itk = sitk.GetImageFromArray(image.cpu().detach().numpy().astype(np.float32))
+    # img_itk.SetSpacing((1, 1, 10))
+    # prd_itk = sitk.GetImageFromArray(prediction.cpu().detach().numpy().astype(np.float32))
+    # prd_itk.SetSpacing((1, 1, 10))
+    # lab_itk = sitk.GetImageFromArray(label.cpu().detach().numpy().astype(np.float32))
+    # lab_itk.SetSpacing((1, 1, 10))
+    # sitk.WriteImage(prd_itk, test_save_path + image_name + "_pred.nii.gz")
+    # sitk.WriteImage(img_itk, test_save_path + image_name + "_img.nii.gz")
+    # sitk.WriteImage(lab_itk, test_save_path + image_name + "_gt.nii.gz")
+    # exit()
+    
+    
     return first_metric#, second_metric, third_metric
 
 
@@ -143,6 +153,7 @@ def Inference(FLAGS):
                                             tile_image_path=TILE_IMAGE_PATH,
                                             tile_label_path=TILE_LABEL_PATH, 
                                             isDermorfit='Dermofit' in DATA_PATH)
+
     
     test_save_path = f"../model/{FLAGS.exp}_{FLAGS.labeled_num}/{FLAGS.model}_model{FLAGS.one_or_two}_predictions/"
     print(f"test is saved to path = {test_save_path}")
@@ -169,6 +180,8 @@ def Inference(FLAGS):
         # first_metric, second_metric, third_metric = test_single_volume(
         #     test_dataset[idx], net, test_save_path, FLAGS)
         # print(f"testing image name = {test_list[idx]}") # testing image name = ('121919_Myo231_[9554,43072]_component_data_0.npy', '121919_Myo231_[9554,43072]_component_mask_0.npy')
+        
+        
         first_metric= test_single_volume(
             test_dataset[idx], test_list[idx][0][:-4], net, test_save_path, FLAGS)
         first_total += np.asarray(first_metric)
