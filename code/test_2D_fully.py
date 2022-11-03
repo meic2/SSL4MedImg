@@ -21,7 +21,7 @@ from networks.vision_transformer import SwinUnet as ViT_seg
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--one_or_two', type=int, default=2,
+parser.add_argument('--one_or_two', type=int, default=None,
                     help = 'test CNN (if input 1) or Transformer(if input 2)')
 parser.add_argument('--root_path', type=str,
                     default='../../dataset/Dermatomyositis', help='Name of dataset')
