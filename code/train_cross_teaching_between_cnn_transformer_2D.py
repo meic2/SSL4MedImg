@@ -210,10 +210,10 @@ def train(args, snapshot_path):
     batch_sampler = TwoStreamBatchSampler(
         labeled_idxs, unlabeled_idxs, batch_size, batch_size-args.labeled_bs)
 
-    trainloader = DataLoader(db_train, batch_sampler=batch_sampler,
-                             num_workers=4, pin_memory=True, worker_init_fn=worker_init_fn)
-    # trainloader = DataLoader(db_train,batch_size=args.batch_size,
+    # trainloader = DataLoader(db_train, batch_sampler=batch_sampler,
     #                          num_workers=4, pin_memory=True, worker_init_fn=worker_init_fn)
+    trainloader = DataLoader(db_train,batch_size=args.batch_size,
+                             num_workers=4, pin_memory=True, worker_init_fn=worker_init_fn)
 
     model1.train()
     model2.train()

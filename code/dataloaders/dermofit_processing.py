@@ -68,7 +68,6 @@ class CustomDataset(Dataset):
         self.tile_label_path = tile_label_path
         self.transform = transform
         self.mode = mode
-        print(f"self.transform: {transform}, self.mode = {mode}")
 
     def __len__(self):
         return len(self.file_list)
@@ -82,7 +81,6 @@ class CustomDataset(Dataset):
         mask_label = torch.from_numpy(mask_label).unsqueeze(0)
 
         if self.transform and self.mode =='train':
-            print("************inside random generator**************")
             sample = self.transform({"image":inputs, 
                                     "label":mask_label})
             # inputs, mask_label = sample['image'], sample['label']
@@ -138,7 +136,6 @@ def build_dataloader(data_path, tile_image_path, tile_label_path,
             elif image[:-11] in test_lis:
                 test_list.append([(image, label)])
     else: # Dermatomyositis
-        print("in Dermatomyositis...")
         data_file = os.listdir(data_path+"CD27_Panel_Component/")
         label_file = os.listdir(data_path+"Labels/CD27_cell_labels/")
         mask_label_file = os.listdir(data_path+"Labels/CD27_cell_labels/Mask_Labels/")
@@ -178,7 +175,6 @@ def build_dataloader(data_path, tile_image_path, tile_label_path,
     logging.info('validation data: {}'.format(len(validation_list)))
     logging.info('test data: {}'.format(len(test_list)))
 
-    print(f"transform_test: {transform_test}")
     return CustomDataset(train_list, tile_image_path, tile_label_path, transform=transform_train, mode='train'), \
             CustomDataset(validation_list, tile_image_path, tile_label_path, transform=transform_val, mode='validation'), \
             CustomDataset(test_list, tile_image_path, tile_label_path, transform=transform_test, mode='test'), \

@@ -18,7 +18,7 @@
 python train_cross_teaching_between_cnn_transformer_2D.py \
 --root_path '../../dataset/Dermatomyositis' \
 --exp 'Dermatomyositis/CT_Between_CNN_Transformer_TilingOnly' \
---labeled_num 3 \
+--labeled_num 28 \
 --batch_size 16 \
 --labeled_bs 8
 
