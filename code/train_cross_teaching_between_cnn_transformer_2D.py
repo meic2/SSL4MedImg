@@ -146,23 +146,20 @@ def xavier_normal_init_weight(model):
 
 def patients_to_slices(dataset, patiens_num, traindataset_len, UsePercentage_flag = False):
     ref_dict = None
-    ref_dict_percentage = None
+    ref_dict_percentage = {"30p": round(0.3*traindataset_len), "50p": round(0.5*traindataset_len),
+                        "70p": round(0.7*traindataset_len), '100p': 1*traindataset_len} 
     if "ACDC" in dataset:
         ref_dict = {"3": 68, "7": 136,
                     "14": 256, "21": 396, "28": 512, "35": 664, "140": 1312}
     elif "Dermofit" in dataset:
         ref_dict = {"3": 68, "7": 136,
                     "14": 256, "21": 396, "28": 512, "35": 664, "140": 1312}
-        ref_dict_percentage = {"30p": round(0.3*traindataset_len), "50p": round(0.5*traindataset_len),
-                               "70p": round(0.7*traindataset_len), '100p': 1*traindataset_len} 
     elif "Dermatomyositis" in dataset:
         ref_dict = {"3": 68, "7": 136,
                     "14": 256, "21": 396, "28": 512, "35": 664, "140": 1312}
-        ref_dict_percentage = {"30p": round(0.3*traindataset_len), "50p": round(0.5*traindataset_len),
-                               "70p": round(0.7*traindataset_len), '100p': 1*traindataset_len} 
     elif  "Dermato_interpolated" in dataset:
-        ref_dict_percentage = {"30p": round(0.3*traindataset_len), "50p": round(0.5*traindataset_len),
-                               "70p": round(0.7*traindataset_len), '100p': 1*traindataset_len} 
+        ref_dict = {"3": 68, "7": 136,
+                    "14": 256, "21": 396, "28": 512, "35": 664, "140": 1312}
     elif "Prostate":
         ref_dict = {"2": 27, "4": 53, "8": 120,
                     "12": 179, "16": 256, "21": 312, "42": 623}
