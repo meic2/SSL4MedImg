@@ -18,6 +18,10 @@ from dataloaders.dermofit_processing import build_dataloader_ssl
 from torch.utils.data import DataLoader
 from config import get_config
 from networks.vision_transformer import SwinUnet as ViT_seg
+from medpy import metric
+from scipy.ndimage import zoom
+import segmentation_models_pytorch as smp
+
 
 
 parser = argparse.ArgumentParser()
@@ -79,6 +83,15 @@ if "Dermatomyositis" in FLAGS.root_path:
     TILE_LABEL_PATH = '/scratch/lc4866/dataset/Dermatomyositis/tile_label/'
 
 
+
+def calculate_metric_iou(pred, label):
+    pred = torch.tensor(pred)
+    label = torch.tensor(label)
+    tp, fp, fn, tn = smp.metrics.get_stats(pred, label.long(), mode='multilabel', threshold=0.5)
+    # accuracy = smp.metrics.accuracy(tp, fp, fn, tn, reduction="macro")
+    iou_score = smp.metrics.iou_score(tp, fp, fn, tn, reduction="micro")
+    return iou_score
+
 def calculate_metric_percase(pred, gt):
     ## change both to np arr
     pred = pred.cpu().detach().numpy()
@@ -87,12 +100,14 @@ def calculate_metric_percase(pred, gt):
     gt[gt > 0] = 1
     if pred.sum() > 0 and gt.sum()>0:
         dice = metric.binary.dc(pred, gt)
-        asd = metric.binary.asd(pred, gt)
         hd95 = metric.binary.hd95(pred, gt)
-        return dice, hd95, asd
+        asd = metric.binary.asd(pred, gt)
+        iou = calculate_metric_iou(pred, gt)
+
+        return dice, hd95, asd, iou
     else:
         print(f"pred: {pred}\n gt: {gt}")
-        return 0,0,0
+        return 0,0,0,0
 
 
 def test_single_volume(sample, image_name, net, test_save_path, FLAGS):
@@ -126,15 +141,19 @@ def test_single_volume(sample, image_name, net, test_save_path, FLAGS):
     # second_metric = calculate_metric_percase(prediction == 2, label == 2)
     # third_metric = calculate_metric_percase(prediction == 3, label == 3)
 
-    img_itk = sitk.GetImageFromArray(image.cpu().detach().numpy().astype(np.float32))
-    img_itk.SetSpacing((1, 1, 10))
-    prd_itk = sitk.GetImageFromArray(prediction.cpu().detach().numpy().astype(np.float32))
-    prd_itk.SetSpacing((1, 1, 10))
-    lab_itk = sitk.GetImageFromArray(label.cpu().detach().numpy().astype(np.float32))
-    lab_itk.SetSpacing((1, 1, 10))
-    sitk.WriteImage(prd_itk, test_save_path + image_name + "_pred.nii.gz")
-    sitk.WriteImage(img_itk, test_save_path + image_name + "_img.nii.gz")
-    sitk.WriteImage(lab_itk, test_save_path + image_name + "_gt.nii.gz")
+    print(f"saving visualization to directory = {test_save_path}")
+    np.save(f'{test_save_path}{image_name}_data.npy', image.cpu().detach().numpy())
+    np.save(f'{test_save_path}{image_name}_mask.npy', label.cpu().detach().numpy())
+    np.save(f'{test_save_path}{image_name}_pred.npy', prediction.cpu().detach().numpy())
+    # img_itk = sitk.GetImageFromArray(image.cpu().detach().numpy().astype(np.float32))
+    # img_itk.SetSpacing((1, 1, 10))
+    # prd_itk = sitk.GetImageFromArray(prediction.cpu().detach().numpy().astype(np.float32))
+    # prd_itk.SetSpacing((1, 1, 10))
+    # lab_itk = sitk.GetImageFromArray(label.cpu().detach().numpy().astype(np.float32))
+    # lab_itk.SetSpacing((1, 1, 10))
+    # sitk.WriteImage(prd_itk, test_save_path + image_name + "_pred.nii.gz")
+    # sitk.WriteImage(img_itk, test_save_path + image_name + "_img.nii.gz")
+    # sitk.WriteImage(lab_itk, test_save_path + image_name + "_gt.nii.gz")
     return first_metric#, second_metric, third_metric
 
 
@@ -184,5 +203,5 @@ if __name__ == '__main__':
     FLAGS = parser.parse_args()
     config = get_config(FLAGS)
     metric = Inference(FLAGS)
-    print(f"dice, hd95, asd: {metric}")
+    print(f"dice, hd95, asd, iou: {metric}")
     # print((metric[0]+metric[1]+metric[2])/3)

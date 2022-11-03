@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#SBATCH --job-name=CT_Between_CNN_Transformer_TilingOnly_3
+#SBATCH --job-name=CT_Between_CNN_Transformer_TilingOnly_70p
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=1
 #SBATCH --gres=gpu:rtx8000:1
