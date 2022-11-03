@@ -94,7 +94,7 @@ parser.add_argument('--throughput', action='store_true',
 # label and unlabel
 parser.add_argument('--labeled_bs', type=int, default=8,
                     help='labeled_batch_size per gpu')
-parser.add_argument('--labeled_num', type=int, default=7,
+parser.add_argument('--labeled_num', type=str, default='30p',
                     help='labeled data')
 # costs
 parser.add_argument('--ema_decay', type=float,  default=0.99, help='ema_decay')
@@ -144,26 +144,35 @@ def xavier_normal_init_weight(model):
     return model
 
 
-def patients_to_slices(dataset, patiens_num):
+def patients_to_slices(dataset, patiens_num, traindataset_len, UsePercentage_flag = False):
     ref_dict = None
+    ref_dict_percentage = None
     if "ACDC" in dataset:
         ref_dict = {"3": 68, "7": 136,
                     "14": 256, "21": 396, "28": 512, "35": 664, "140": 1312}
     elif "Dermofit" in dataset:
         ref_dict = {"3": 68, "7": 136,
                     "14": 256, "21": 396, "28": 512, "35": 664, "140": 1312}
+        ref_dict_percentage = {"30p": round(0.3*traindataset_len), "50p": round(0.5*traindataset_len),
+                               "70p": round(0.7*traindataset_len), '100p': 1*traindataset_len} 
     elif "Dermatomyositis" in dataset:
         ref_dict = {"3": 68, "7": 136,
                     "14": 256, "21": 396, "28": 512, "35": 664, "140": 1312}
+        ref_dict_percentage = {"30p": round(0.3*traindataset_len), "50p": round(0.5*traindataset_len),
+                               "70p": round(0.7*traindataset_len), '100p': 1*traindataset_len} 
     elif  "Dermato_interpolated" in dataset:
-        ref_dict = {"3": 68, "7": 136,
-                    "14": 256, "21": 396, "28": 512, "35": 664, "140": 1312} # 1452 if TilingOnly, 121 if InterpolateOnly
+        ref_dict_percentage = {"30p": round(0.3*traindataset_len), "50p": round(0.5*traindataset_len),
+                               "70p": round(0.7*traindataset_len), '100p': 1*traindataset_len} 
     elif "Prostate":
         ref_dict = {"2": 27, "4": 53, "8": 120,
                     "12": 179, "16": 256, "21": 312, "42": 623}
     else:
         print("Error")
-    return ref_dict[str(patiens_num)]
+   
+    if UsePercentage_flag:
+        return ref_dict_percentage[str(patiens_num)]
+    else:
+        return ref_dict[str(patiens_num)]
 
 
 def get_current_consistency_weight(epoch):
@@ -209,7 +218,7 @@ def train(args, snapshot_path):
     db_train, db_val, db_test,  _, _, _ = build_dataloader_ssl(DATA_PATH, TILE_IMAGE_PATH, TILE_LABEL_PATH, data_class)
 
     total_slices = len(db_train)
-    labeled_slice = patients_to_slices(args.root_path, args.labeled_num)
+    labeled_slice = patients_to_slices(args.root_path, args.labeled_num, len(db_train), UsePercentage_flag=True)
     # print("Total silices is: {}, labeled slices is: {}".format(
     #     total_slices, labeled_slice))
     logging.info("Total silices is: {}, labeled slices is: {}".format(
@@ -219,10 +228,10 @@ def train(args, snapshot_path):
     batch_sampler = TwoStreamBatchSampler(
         labeled_idxs, unlabeled_idxs, batch_size, batch_size-args.labeled_bs)
 
-    # trainloader = DataLoader(db_train, batch_sampler=batch_sampler,
-    #                          num_workers=4, pin_memory=True, worker_init_fn=worker_init_fn)
-    trainloader = DataLoader(db_train,batch_size=args.batch_size,
+    trainloader = DataLoader(db_train, batch_sampler=batch_sampler,
                              num_workers=4, pin_memory=True, worker_init_fn=worker_init_fn)
+    # trainloader = DataLoader(db_train,batch_size=args.batch_size,
+    #                          num_workers=4, pin_memory=True, worker_init_fn=worker_init_fn)
 
     model1.train()
     model2.train()
@@ -340,6 +349,7 @@ def train(args, snapshot_path):
                 mean_hd951 = np.mean(metric_list, axis=0)[1]
                 
                 mean_iou1 = np.mean([tup[2] for tup in metric_list if not np.isnan(tup[2])])
+                
                 writer.add_scalar('info/model1_val_mean_dice',
                                   performance1, iter_num)
                 writer.add_scalar('info/model1_val_mean_hd95',
