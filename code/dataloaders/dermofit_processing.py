@@ -143,7 +143,6 @@ def build_dataloader(data_path, tile_image_path, tile_label_path,
                 test_list.append([(image, label)])
     else: 
         # Dermatomyositis
-        print("here in Dermatomyositis")
         data_file = os.listdir(data_path+"CD27_Panel_Component/")
         label_file = os.listdir(data_path+"Labels/CD27_cell_labels/")
         mask_label_file = os.listdir(data_path+"Labels/CD27_cell_labels/Mask_Labels/")

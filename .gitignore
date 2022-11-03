@@ -11,3 +11,4 @@ code/train.sbatch
 **.out
 .ipynb_checkpoints/
 **/.ipynb_checkpoints/
+*.ipynb
