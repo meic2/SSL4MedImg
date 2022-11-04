@@ -27,6 +27,8 @@ import segmentation_models_pytorch as smp
 parser = argparse.ArgumentParser()
 parser.add_argument('--one_or_two', type=int, default=None,
                     help = 'test CNN (if input 1) or Transformer(if input 2)')
+parser.add_argument('--data_class', type=int, default=None,
+                    help = '1 for Dermofit, 2 for Dermatomyositis TilingOnly, 3 for Dermatomyositis interpolateOnly')
 parser.add_argument('--root_path', type=str,
                     default='../../dataset/Dermatomyositis', help='Name of dataset')
 parser.add_argument('--exp', type=str,
@@ -39,7 +41,7 @@ parser.add_argument('--batch_size', type=int, default=8,
                         help='batch_size per gpu')
 parser.add_argument('--num_classes', type=int,  default=2,
                     help='output channel of network')
-parser.add_argument('--labeled_num', type=int, default=7,
+parser.add_argument('--labeled_num', type=str, default=None,
                     help='labeled data')
 parser.add_argument('--patch_size', type=list,  default=[480, 480],
                     help='patch size of network input')
@@ -70,18 +72,23 @@ parser.add_argument('--eval', action='store_true',
                     help='Perform evaluation only')
 parser.add_argument('--throughput', action='store_true',
                         help='Test throughput only')
+
 FLAGS = parser.parse_args()
 config = get_config(FLAGS)
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
-DATA_PATH = '../../dataset/Dermofit/original_data/'
-TILE_IMAGE_PATH = '../../dataset/Dermofit_resize_noTiling/resize_image/'
-TILE_LABEL_PATH = '../../dataset/Dermofit_resize_noTiling/resize_label/'
-if "Dermatomyositis" in FLAGS.root_path:
+if FLAGS.data_class ==1:
+    DATA_PATH = '../../dataset/Dermofit/original_data/'
+    TILE_IMAGE_PATH = '../../dataset/Dermofit_resize_noTiling/resize_image/'
+    TILE_LABEL_PATH = '../../dataset/Dermofit_resize_noTiling/resize_label/'
+elif FLAGS.data_class ==2:
     DATA_PATH = '/scratch/lc4866/dataset/Dermatomyositis/original_data/'
     TILE_IMAGE_PATH = '/scratch/lc4866/dataset/Dermatomyositis/tile_image/'
     TILE_LABEL_PATH = '/scratch/lc4866/dataset/Dermatomyositis/tile_label/'
-
+elif FLAGS.data_class ==3:
+    DATA_PATH = '/scratch/lc4866/dataset/Dermatomyositis/original_data/'
+    TILE_IMAGE_PATH = '/scratch/lc4866/dataset/Dermatomyositis/InterpolateOnly_image/'
+    TILE_LABEL_PATH = '/scratch/lc4866/dataset/Dermatomyositis/InterpolateOnly_label/'
 
 
 def calculate_metric_iou(pred, label):
@@ -161,7 +168,7 @@ def Inference(FLAGS):
     _, _, test_dataset, _, _, test_list = build_dataloader_ssl(data_path=DATA_PATH, 
                                             tile_image_path=TILE_IMAGE_PATH,
                                             tile_label_path=TILE_LABEL_PATH, 
-                                            isDermorfit='Dermofit' in DATA_PATH)
+                                            dataclass=FLAGS.data_class)
     
     test_save_path = f"../model/{FLAGS.exp}_{FLAGS.labeled_num}/{FLAGS.model}_model{FLAGS.one_or_two}_predictions/"
     print(f"test is saved to path = {test_save_path}")
