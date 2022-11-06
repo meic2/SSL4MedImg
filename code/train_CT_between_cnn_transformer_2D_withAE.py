@@ -40,6 +40,7 @@ from dataloaders import utils
 from dataloaders.dataset import TwoStreamBatchSampler #BaseDataSets, RandomGenerator,
 from dataloaders.dermofit_processing import build_dataloader_ssl
 from networks.net_factory import net_factory
+from networks.auto_encoder import Autoencoder
 from networks.vision_transformer import SwinUnet as ViT_seg
 from utils import losses, metrics, ramps
 from val_2D import test_single_volume
@@ -147,7 +148,7 @@ def xavier_normal_init_weight(model):
 def patients_to_slices(dataset, patiens_num, traindataset_len, UsePercentage_flag = False):
     ref_dict = None
     ref_dict_percentage = {"30p": round(0.3*traindataset_len), "50p": round(0.5*traindataset_len),
-                        "70p": round(0.7*traindataset_len), "100p": 1*traindataset_len} 
+                        "70p": round(0.7*traindataset_len), "99p": traindataset_len-1, "100p": 1*traindataset_len} 
     if "ACDC" in dataset:
         ref_dict = {"3": 68, "7": 136,
                     "14": 256, "21": 396, "28": 512, "35": 664, "140": 1312}
@@ -204,6 +205,7 @@ def train(args, snapshot_path):
     model2 = ViT_seg(config, img_size=args.patch_size,
                      num_classes=args.num_classes).cuda()
     model2.load_from(config)
+    AE = Autoencoder().cuda()
 
     def worker_init_fn(worker_id):
         random.seed(args.seed + worker_id)
@@ -232,6 +234,7 @@ def train(args, snapshot_path):
 
     model1.train()
     model2.train()
+    AE.train()
 
     valloader = DataLoader(db_val, batch_size=1, shuffle=False,
                            num_workers=1)
@@ -240,9 +243,11 @@ def train(args, snapshot_path):
                            momentum=0.9, weight_decay=0.0001)
     optimizer2 = optim.SGD(model2.parameters(), lr=base_lr,
                            momentum=0.9, weight_decay=0.0001)
+    optimizer_AE = optim.Adam(AE.parameters(), lr=1e-3)
+    
     ce_loss = CrossEntropyLoss()
     dice_loss = losses.DiceLoss(num_classes)
-
+    criterion2 = nn.MSELoss()
     writer = SummaryWriter(snapshot_path + '/log')
     logging.info("{} iterations per epoch".format(len(trainloader)))
 
@@ -262,6 +267,7 @@ def train(args, snapshot_path):
 
             outputs2 = model2(volume_batch)
             outputs_soft2 = torch.softmax(outputs2, dim=1)
+            # print("outputs1.shape, outputs2.shape: ", outputs1.shape, outputs2.shape) # outputs1.shape, outputs2.shape:  torch.Size([16, 2, 480, 480]) torch.Size([16, 2, 480, 480])
             consistency_weight = get_current_consistency_weight(
                 iter_num // 150)
             # print(outputs1.shape, label_batch.shape, args.labeled_bs)
@@ -280,10 +286,15 @@ def train(args, snapshot_path):
             pseudo_supervision2 = dice_loss(
                 outputs_soft2[args.labeled_bs:], pseudo_outputs1.unsqueeze(1))
 
+            ## add auto-encoder
+            unlabeld_ae1 = AE(outputs_soft1[args.labeled_bs:])
+            unlabeld_ae2 = AE(outputs_soft2[args.labeled_bs:])
+            AE_loss = criterion2(unlabeld_ae1, unlabeld_ae2)
+            
             model1_loss = loss1 + consistency_weight * pseudo_supervision1
             model2_loss = loss2 + consistency_weight * pseudo_supervision2
 
-            loss = model1_loss + model2_loss
+            loss = model1_loss + model2_loss + AE_loss
 
             optimizer1.zero_grad()
             optimizer2.zero_grad()
@@ -292,6 +303,7 @@ def train(args, snapshot_path):
 
             optimizer1.step()
             optimizer2.step()
+            optimizer_AE.step()
 
             iter_num = iter_num + 1
 
