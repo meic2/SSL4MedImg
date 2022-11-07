@@ -52,7 +52,9 @@ def test_single_volume(image, label, net, classes, patch_size=[256, 256]):
         prediction = pred
     metric_list = []
     # for i in range(1, classes):
-    metric_list.append(calculate_metric_percase(prediction, label))
+    res = calculate_metric_percase(prediction, label)
+    if len(res) !=0:
+        metric_list.append(res)
     # metric_list.append(calculate_metric_iou(prediction, label))
     return metric_list
 

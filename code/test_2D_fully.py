@@ -76,13 +76,13 @@ if FLAGS.data_class ==1:
     TILE_IMAGE_PATH = '../../dataset/Dermofit_resize_noTiling/resize_image/'
     TILE_LABEL_PATH = '../../dataset/Dermofit_resize_noTiling/resize_label/'
 elif FLAGS.data_class ==2:
-    DATA_PATH = '/scratch/lc4866/dataset/Dermatomyositis/original_data/'
-    TILE_IMAGE_PATH = '/scratch/lc4866/dataset/Dermatomyositis/tile_image/'
-    TILE_LABEL_PATH = '/scratch/lc4866/dataset/Dermatomyositis/tile_label/'
+    DATA_PATH = '../../dataset/Dermatomyositis/original_data/'
+    TILE_IMAGE_PATH = '../../dataset/Dermatomyositis/tile_image/'
+    TILE_LABEL_PATH = '../../dataset/Dermatomyositis/tile_label/'
 elif FLAGS.data_class ==3:
-    DATA_PATH = '/scratch/lc4866/dataset/Dermatomyositis/original_data/'
-    TILE_IMAGE_PATH = '/scratch/lc4866/dataset/Dermatomyositis/interpolateOnly_image/'
-    TILE_LABEL_PATH = '/scratch/lc4866/dataset/Dermatomyositis/interpolateOnly_label/'
+    DATA_PATH = '../../dataset/Dermatomyositis/original_data/'
+    TILE_IMAGE_PATH = '../../dataset/Dermatomyositis/interpolateOnly_image/'
+    TILE_LABEL_PATH = '../../dataset/Dermatomyositis/interpolateOnly_label/'
 
 
 def calculate_metric_iou(pred, label):
