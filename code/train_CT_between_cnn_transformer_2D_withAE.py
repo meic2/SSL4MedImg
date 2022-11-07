@@ -343,7 +343,10 @@ def train(args, snapshot_path):
                 for i_batch, sampled_batch in enumerate(valloader):
                     metric_i = test_single_volume(
                         sampled_batch["image"], sampled_batch["label"].squeeze(1), model1, classes=num_classes, patch_size=args.patch_size)
-                    metric_list += np.array(metric_i)
+                    if metric_i != []:
+                        # if sample groundtruth label are empty, ignore this validation sample;
+                        metric_list += np.array(metric_i)
+                    metric_list = metric_list / len(db_val)
                 metric_list = metric_list / len(db_val)
                 for class_i in range(num_classes-1):
                     writer.add_scalar('info/model1_val_{}_dice'.format(class_i+1),
@@ -390,7 +393,8 @@ def train(args, snapshot_path):
                     # print(sampled_batch["image"].shape, sampled_batch["label"].shape)
                     metric_i = test_single_volume(
                         sampled_batch["image"], sampled_batch["label"].squeeze(1), model2, classes=num_classes, patch_size=args.patch_size)
-                    metric_list += np.array(metric_i)
+                    if metric_list != []:
+                        metric_list += np.array(metric_i)
                 metric_list = metric_list / len(db_val)
                 for class_i in range(num_classes-1):
                     writer.add_scalar('info/model2_val_{}_dice'.format(class_i+1),
