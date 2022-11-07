@@ -111,7 +111,7 @@ dataclass = 1
 DATA_PATH = '../../dataset/Dermofit/original_data/'
 TILE_IMAGE_PATH = '../../dataset/Dermofit_resize_noTiling/resize_image/'
 TILE_LABEL_PATH = '../../dataset/Dermofit_resize_noTiling/resize_label/'
-if "Dermatomyositis" in args.root_path:
+if "Dermato_interpolated" in args.root_path:
     DATA_PATH = '../../dataset/Dermatomyositis/original_data/'
     TILE_IMAGE_PATH = '../../dataset/Dermatomyositis/tile_image/'
     TILE_LABEL_PATH = '../../dataset/Dermatomyositis/tile_label/'
@@ -203,7 +203,7 @@ def train(args, snapshot_path):
     #     RandomGenerator(args.patch_size)
     # ]))
     # db_val = BaseDataSets(base_dir=args.root_path, split="val")
-    db_train, db_val, db_test, _, _, _ = build_dataloader_ssl(DATA_PATH, TILE_IMAGE_PATH, TILE_LABEL_PATH, dataclass)
+    db_train, db_val, db_test, _, _, _ = build_dataloader_ssl(DATA_PATH, TILE_IMAGE_PATH, TILE_LABEL_PATH, dataclass=data_class)
 
     # total_slices = len(db_train)
     # labeled_slice = patients_to_slices(args.root_path, args.labeled_num)
@@ -333,18 +333,23 @@ def train(args, snapshot_path):
                                       metric_list[class_i, 2], iter_num)
 
                 performance1 = np.mean(metric_list, axis=0)[0]
-
                 mean_hd951 = np.mean(metric_list, axis=0)[1]
-                mean_iou1 = np.mean([tup[2] for tup in metric_list if not np.isnan(tup[2])])
+                mean_asd1 = np.mean(metric_list, axis=0)[2]
+                mean_iou1 = np.mean([tup[3] for tup in metric_list if not np.isnan(tup[3])])
                 writer.add_scalar('info/model1_val_mean_dice',
                                   performance1, iter_num)
                 writer.add_scalar('info/model1_val_mean_hd95',
                                   mean_hd951, iter_num)
+                writer.add_scalar('info/model1_val_mean_asd',
+                                  mean_asd1, iter_num)
+                writer.add_scalar('info/model1_val_mean_iou',
+                                  mean_iou1, iter_num)
+                
                 # change to mean_iou as val standards
                 if mean_iou1 > best_performance1:
                     best_performance1 = mean_iou1
                     save_mode_path = os.path.join(snapshot_path,
-                                                  'model1_iter_{}_dice_{}.pth'.format(
+                                                  'model1_iter_{}_iou_{}.pth'.format(
                                                       iter_num, round(best_performance1, 4)))
                     save_best = os.path.join(snapshot_path,
                                              '{}_best_model1.pth'.format(args.model))
@@ -352,7 +357,7 @@ def train(args, snapshot_path):
                     torch.save(model1.state_dict(), save_best)
 
                 logging.info(
-                    'iteration %d : model1_mean_dice : %f model1_mean_hd95 : %f model1_mean_iou : %f' % (iter_num, performance1, mean_hd951, mean_iou1))
+                    'iteration %d : model1_mean_dice : %f model1_mean_hd95 : %f model1_mean_asd %f model1_mean_iou : %f' % (iter_num, performance1, mean_hd951, mean_asd1, mean_iou1))
                 model1.train()
 
                 model2.eval()
@@ -368,24 +373,29 @@ def train(args, snapshot_path):
                                       metric_list[class_i, 0], iter_num)
                     writer.add_scalar('info/model2_val_{}_hd95'.format(class_i+1),
                                       metric_list[class_i, 1], iter_num)
-                    writer.add_scalar('infor/model2_val_{}_iou'.format(class_i+1), 
+                    writer.add_scalar('infor/model2_val_{}_asd'.format(class_i+1), 
                                       metric_list[class_i, 2], iter_num)
+                    writer.add_scalar('infor/model2_val_{}_iou'.format(class_i+1), 
+                                      metric_list[class_i, 3], iter_num)
 
                 performance2 = np.mean(metric_list, axis=0)[0]
 
                 mean_hd952 = np.mean(metric_list, axis=0)[1]
-                mean_iou2 = np.mean([tup[2] for tup in metric_list if not np.isnan(tup[2])])
+                mean_asd2 = np.mean(metric_list, axis=0)[2]
+                mean_iou2 = np.mean([tup[3] for tup in metric_list if not np.isnan(tup[3])])
                 writer.add_scalar('info/model2_val_mean_dice',
                                   performance2, iter_num)
                 writer.add_scalar('info/model2_val_mean_hd95',
                                   mean_hd952, iter_num)
+                writer.add_scalar('info/model2_val_mean_asd',
+                                  mean_asd2, iter_num)
                 writer.add_scalar('info/model2_val_mean_iou',
-                                  mean_iou1, iter_num)
+                                  mean_iou2, iter_num)
 
                 if mean_iou2 > best_performance2:
                     best_performance2 = mean_iou2
                     save_mode_path = os.path.join(snapshot_path,
-                                                  'model2_iter_{}_dice_{}.pth'.format(
+                                                  'model2_iter_{}_iou_{}.pth'.format(
                                                       iter_num, round(best_performance2, 4)))
                     save_best = os.path.join(snapshot_path,
                                              '{}_best_model2.pth'.format(args.model))
@@ -393,7 +403,7 @@ def train(args, snapshot_path):
                     torch.save(model2.state_dict(), save_best)
 
                 logging.info(
-                    'iteration %d : model2_mean_dice : %f model2_mean_hd95 : %f model2_mean_iou : %f' % (iter_num, performance2, mean_hd952, mean_iou2))
+                    'iteration %d : model2_mean_dice : %f model2_mean_hd95 : %f model2_mean_asd %f model2_mean_iou : %f' % (iter_num, performance2, mean_hd952, mean_asd2, mean_iou2))
                 model2.train()
 
             if iter_num % 3000 == 0:

@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#SBATCH --job-name=TilingOnly_50p
+#SBATCH --job-name=noAE/CT_Between_CNN_Transformer_TilingOnly_30p
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=1
 #SBATCH --gres=gpu:rtx8000:1
@@ -8,7 +8,7 @@
 #SBATCH --mem=64GB
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=lc4866@nyu.edu
-#SBATCH --output=CT_Between_CNN_Transformer_TilingOnly_label7.out
+#SBATCH --output=Dermatomyositis_percentage_CT_Between_CNN_Transformer_TilingOnly_30p.out
 
 module purge
 
