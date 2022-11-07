@@ -18,9 +18,9 @@
 python train_cross_teaching_between_cnn_transformer_2D.py \
 --root_path '../../dataset/Dermatomyositis' \
 --exp 'Dermatomyositis_percentage/CT_Between_CNN_Transformer_TilingOnly' \
---labeled_num 99p \
+--labeled_num 30p \
 --batch_size 16 \
---labeled_bs 15
+--labeled_bs 8
 
 ### with AE, InterpolateOnly, semi-supervised ####
 # python train_CT_between_cnn_transformer_2D_withAE.py \
