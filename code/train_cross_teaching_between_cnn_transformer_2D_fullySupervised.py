@@ -94,7 +94,7 @@ parser.add_argument('--throughput', action='store_true',
 # label and unlabel
 parser.add_argument('--labeled_bs', type=int, default=8,
                     help='labeled_batch_size per gpu')
-parser.add_argument('--labeled_num', type=int, default=7,
+parser.add_argument('--labeled_num', type=str, default='7',
                     help='labeled data')
 # costs
 parser.add_argument('--ema_decay', type=float,  default=0.99, help='ema_decay')
@@ -107,21 +107,19 @@ parser.add_argument('--consistency_rampup', type=float,
 args = parser.parse_args()
 config = get_config(args)
 
-
+dataclass = 1
 DATA_PATH = '../../dataset/Dermofit/original_data/'
 TILE_IMAGE_PATH = '../../dataset/Dermofit_resize_noTiling/resize_image/'
 TILE_LABEL_PATH = '../../dataset/Dermofit_resize_noTiling/resize_label/'
 if "Dermato_interpolated" in args.root_path:
     DATA_PATH = '../../dataset/Dermatomyositis/original_data/'
-    TILE_IMAGE_PATH = '../../dataset/Dermatomyositis/InterpolateOnly_image/'
-    TILE_LABEL_PATH = '../../dataset/Dermatomyositis/InterpolateOnly_label/'
-    data_class = 3
-elif if "Dermatomyositis" in args.root_path:
-    DATA_PATH = '../../dataset/Dermatomyositis/original_data/'
     TILE_IMAGE_PATH = '../../dataset/Dermatomyositis/tile_image/'
     TILE_LABEL_PATH = '../../dataset/Dermatomyositis/tile_label/'
-    data_class = 2
-
+    dataclass = 2
+elif "Dermato_interpolated" in args.root_path:
+    TILE_IMAGE_PATH = '../../dataset/Dermatomyositis/InterpolateOnly_image/'
+    TILE_LABEL_PATH = '../../dataset/Dermatomyositis/InterpolateOnly_label/'
+    dataclass = 3
 
 
 print(torch.cuda.is_available())
@@ -207,16 +205,16 @@ def train(args, snapshot_path):
     # db_val = BaseDataSets(base_dir=args.root_path, split="val")
     db_train, db_val, db_test, _, _, _ = build_dataloader_ssl(DATA_PATH, TILE_IMAGE_PATH, TILE_LABEL_PATH, dataclass=data_class)
 
-    total_slices = len(db_train)
-    labeled_slice = patients_to_slices(args.root_path, args.labeled_num)
+    # total_slices = len(db_train)
+    # labeled_slice = patients_to_slices(args.root_path, args.labeled_num)
     # print("Total silices is: {}, labeled slices is: {}".format(
     #     total_slices, labeled_slice))
-    logging.info("Total silices is: {}, labeled slices is: {}".format(
-        total_slices, labeled_slice))
-    labeled_idxs = list(range(0, labeled_slice))
-    unlabeled_idxs = list(range(labeled_slice, total_slices))
-    batch_sampler = TwoStreamBatchSampler(
-        labeled_idxs, unlabeled_idxs, batch_size, batch_size-args.labeled_bs)
+    # logging.info("Total silices is: {}, labeled slices is: {}".format(
+    #     total_slices, labeled_slice))
+    # labeled_idxs = list(range(0, labeled_slice))
+    # unlabeled_idxs = list(range(labeled_slice, total_slices))
+    # batch_sampler = TwoStreamBatchSampler(
+    #     labeled_idxs, unlabeled_idxs, batch_size, batch_size-args.labeled_bs)
 
     # trainloader = DataLoader(db_train, batch_sampler=batch_sampler,
     #                          num_workers=4, pin_memory=True, worker_init_fn=worker_init_fn)
