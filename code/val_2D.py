@@ -18,6 +18,8 @@ def calculate_metric_percase(pred, gt):
     bool_gt = gt == 1
     bool_pred[bool_pred > 0] = 1
     bool_gt[bool_gt > 0] = 1
+    if bool_gt.sum() == 0:
+        return []
     if pred.sum() > 0:
         dice = metric.binary.dc(bool_pred, bool_gt)
         hd95 = metric.binary.hd95(bool_pred, bool_gt) if bool_gt.sum()>0 else 0
@@ -29,6 +31,9 @@ def calculate_metric_percase(pred, gt):
 
 
 def test_single_volume(image, label, net, classes, patch_size=[256, 256]):
+    '''
+    Note: if label is empty, return [] and ignore the validation metric.
+    '''
     image, label = image.squeeze(0).cpu().detach(
     ).numpy(), label.squeeze(0).cpu().detach().numpy()
     prediction = np.zeros_like(label)
