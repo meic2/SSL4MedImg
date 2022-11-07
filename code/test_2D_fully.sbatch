@@ -21,4 +21,5 @@ singularity exec --nv\
                     --saved_model_path /scratch/mc8895/SSL4SL/model/Dermatomyositis/Cross_Teaching_CNN_Transformer_interpolated_99p/unet/unet_best_model1.pth \
                     --labeled_num 99p \
                     --one_or_two 1 \
+                    --data_class 3 \
                     --patch_size [480,480]"
