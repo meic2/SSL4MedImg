@@ -1,25 +1,19 @@
 import argparse
+from dataclasses import dataclass
 import os
 import shutil
-
-import h5py
-# import nibabel as nib
 import numpy as np
-import SimpleITK as sitk
 import torch
 from medpy import metric
 from scipy.ndimage import zoom
-from scipy.ndimage.interpolation import zoom
 from tqdm import tqdm
-
-# from networks.efficientunet import UNet
 from networks.net_factory import net_factory
 from dataloaders.dermofit_processing import build_dataloader_ssl
 from torch.utils.data import DataLoader
 from config import get_config
 from networks.vision_transformer import SwinUnet as ViT_seg
 from medpy import metric
-from scipy.ndimage import zoom
+# from scipy.ndimage import zoom
 import segmentation_models_pytorch as smp
 
 
@@ -39,7 +33,7 @@ parser.add_argument('--batch_size', type=int, default=8,
                         help='batch_size per gpu')
 parser.add_argument('--num_classes', type=int,  default=2,
                     help='output channel of network')
-parser.add_argument('--labeled_num', type=int, default=7,
+parser.add_argument('--labeled_num', type=str, default=7,
                     help='labeled data')
 parser.add_argument('--patch_size', type=list,  default=[480, 480],
                     help='patch size of network input')
@@ -77,11 +71,14 @@ device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 DATA_PATH = '../../dataset/Dermofit/original_data/'
 TILE_IMAGE_PATH = '../../dataset/Dermofit_resize_noTiling/resize_image/'
 TILE_LABEL_PATH = '../../dataset/Dermofit_resize_noTiling/resize_label/'
+dataclass = 1
 if "Dermatomyositis" in FLAGS.root_path:
     DATA_PATH = '/scratch/lc4866/dataset/Dermatomyositis/original_data/'
     TILE_IMAGE_PATH = '/scratch/lc4866/dataset/Dermatomyositis/tile_image/'
     TILE_LABEL_PATH = '/scratch/lc4866/dataset/Dermatomyositis/tile_label/'
-
+    dataclass = 2
+elif "Dermato_interpolated" in FLAGS.root_path:
+    dataclass = 3
 
 
 def calculate_metric_iou(pred, label):
@@ -156,12 +153,11 @@ def test_single_volume(sample, image_name, net, test_save_path, FLAGS):
     # sitk.WriteImage(lab_itk, test_save_path + image_name + "_gt.nii.gz")
     return first_metric#, second_metric, third_metric
 
-
 def Inference(FLAGS):
     _, _, test_dataset, _, _, test_list = build_dataloader_ssl(data_path=DATA_PATH, 
                                             tile_image_path=TILE_IMAGE_PATH,
                                             tile_label_path=TILE_LABEL_PATH, 
-                                            isDermorfit='Dermofit' in DATA_PATH)
+                                            dataclass=dataclass)
     
     test_save_path = f"../model/{FLAGS.exp}_{FLAGS.labeled_num}/{FLAGS.model}_model{FLAGS.one_or_two}_predictions/"
     print(f"test is saved to path = {test_save_path}")
