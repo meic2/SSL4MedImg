@@ -18,7 +18,9 @@ def calculate_metric_percase(pred, gt):
     bool_gt = gt == 1
     bool_pred[bool_pred > 0] = 1
     bool_gt[bool_gt > 0] = 1
-    if pred.sum() > 0:
+    if gt.sum() ==0:
+        return []
+    if pred.sum() >0 and gt.sum()>0:
         dice = metric.binary.dc(bool_pred, bool_gt)
         hd95 = metric.binary.hd95(bool_pred, bool_gt) if bool_gt.sum()>0 else 0
         asd = metric.binary.asd(pred, gt)
