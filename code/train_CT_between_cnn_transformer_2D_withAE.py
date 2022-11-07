@@ -267,7 +267,6 @@ def train(args, snapshot_path):
 
             outputs2 = model2(volume_batch)
             outputs_soft2 = torch.softmax(outputs2, dim=1)
-            # print("outputs1.shape, outputs2.shape: ", outputs1.shape, outputs2.shape) # outputs1.shape, outputs2.shape:  torch.Size([16, 2, 480, 480]) torch.Size([16, 2, 480, 480])
             consistency_weight = get_current_consistency_weight(
                 iter_num // 150)
             # print(outputs1.shape, label_batch.shape, args.labeled_bs)

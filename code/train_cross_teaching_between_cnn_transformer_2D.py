@@ -119,8 +119,8 @@ if "Dermatomyositis" in args.root_path:
     data_class = 2
 elif "Dermato_interpolated" in args.root_path:
     DATA_PATH = '../../dataset/Dermatomyositis/original_data/'
-    TILE_IMAGE_PATH = '../../dataset/Dermatomyositis/interpolated_image/'
-    TILE_LABEL_PATH = '../../dataset/Dermatomyositis/interpolated_label/'
+    TILE_IMAGE_PATH = '../../dataset/Dermatomyositis/InterpolateOnly_image/'
+    TILE_LABEL_PATH = '../../dataset/Dermatomyositis/InterpolateOnly_label/'
     data_class = 3
 
 print(torch.cuda.is_available())
@@ -159,7 +159,7 @@ def patients_to_slices(dataset, patiens_num, traindataset_len, UsePercentage_fla
                     "14": 256, "21": 396, "28": 512, "35": 664, "140": 1312}
     elif  "Dermato_interpolated" in dataset:
         ref_dict = {"3": 68, "7": 136,
-                    "14": 256, "21": 396, "28": 512, "35": 664, "140": 1312}
+                    "14": 256, "21": 396, "28": 512, "35": 664, "140": 121}
     elif "Prostate":
         ref_dict = {"2": 27, "4": 53, "8": 120,
                     "12": 179, "16": 256, "21": 312, "42": 623}
@@ -226,7 +226,7 @@ def train(args, snapshot_path):
         labeled_idxs, unlabeled_idxs, batch_size, batch_size-args.labeled_bs)
 
     trainloader = DataLoader(db_train, batch_sampler=batch_sampler,
-                             num_workers=4, pin_memory=True, worker_init_fn=worker_init_fn)
+                             num_workers=1, pin_memory=True, worker_init_fn=worker_init_fn)
     # trainloader = DataLoader(db_train,batch_size=args.batch_size,
     #                          num_workers=4, pin_memory=True, worker_init_fn=worker_init_fn)
 
@@ -338,24 +338,30 @@ def train(args, snapshot_path):
                                       metric_list[class_i, 0], iter_num)
                     writer.add_scalar('info/model1_val_{}_hd95'.format(class_i+1),
                                       metric_list[class_i, 1], iter_num)
-                    writer.add_scalar('infor/model1_val_{}_iou'.format(class_i+1), 
+                    writer.add_scalar('info/model1_val_{}_asd'.format(class_i+1),
                                       metric_list[class_i, 2], iter_num)
+                    writer.add_scalar('infor/model1_val_{}_iou'.format(class_i+1), 
+                                      metric_list[class_i, 3], iter_num)
 
-                performance1 = np.mean(metric_list, axis=0)[0]
+                performance1 = np.mean(metric_list, axis=0)[0] ## dice
 
-                mean_hd951 = np.mean(metric_list, axis=0)[1]
-                
-                mean_iou1 = np.mean([tup[2] for tup in metric_list if not np.isnan(tup[2])])
+                mean_hd951 = np.mean(metric_list, axis=0)[1] ## hd95
+                mean_asd1 = np.mean(metric_list, axis=0)[2] ## asd
+                mean_iou1 = np.mean([tup[3] for tup in metric_list if not np.isnan(tup[3])]) ## iou
                 
                 writer.add_scalar('info/model1_val_mean_dice',
                                   performance1, iter_num)
                 writer.add_scalar('info/model1_val_mean_hd95',
                                   mean_hd951, iter_num)
+                writer.add_scalar('info/model1_val_mean_asd',
+                                  mean_asd1, iter_num)
+                writer.add_scalar('info/model1_val_mean_iou',
+                                  mean_iou1, iter_num)
                 # change to mean_iou as val standards
                 if mean_iou1 > best_performance1:
                     best_performance1 = mean_iou1
                     save_mode_path = os.path.join(snapshot_path,
-                                                  'model1_iter_{}_dice_{}.pth'.format(
+                                                  'model1_iter_{}_iou_{}.pth'.format(
                                                       iter_num, round(best_performance1, 4)))
                     save_best = os.path.join(snapshot_path,
                                              '{}_best_model1.pth'.format(args.model))
@@ -363,7 +369,7 @@ def train(args, snapshot_path):
                     torch.save(model1.state_dict(), save_best)
 
                 logging.info(
-                    'iteration %d : model1_mean_dice : %f model1_mean_hd95 : %f model1_mean_iou : %f' % (iter_num, performance1, mean_hd951, mean_iou1))
+                    'iteration %d : model1_mean_dice : %f model1_mean_hd95 : %f model1_mean_asd : %f model1_mean_iou : %f' % (iter_num, performance1, mean_hd951, mean_asd1, mean_iou1))
                 model1.train()
 
                 model2.eval()
@@ -379,24 +385,29 @@ def train(args, snapshot_path):
                                       metric_list[class_i, 0], iter_num)
                     writer.add_scalar('info/model2_val_{}_hd95'.format(class_i+1),
                                       metric_list[class_i, 1], iter_num)
-                    writer.add_scalar('infor/model2_val_{}_iou'.format(class_i+1), 
+                    writer.add_scalar('infor/model2_val_{}_asd'.format(class_i+1), 
                                       metric_list[class_i, 2], iter_num)
+                    writer.add_scalar('infor/model2_val_{}_iou'.format(class_i+1), 
+                                      metric_list[class_i, 3], iter_num)
 
-                performance2 = np.mean(metric_list, axis=0)[0]
-
-                mean_hd952 = np.mean(metric_list, axis=0)[1]
-                mean_iou2 = np.mean([tup[2] for tup in metric_list if not np.isnan(tup[2])])
+                performance2 = np.mean(metric_list, axis=0)[0] ## dice
+                mean_hd952 = np.mean(metric_list, axis=0)[1] ## hd95
+                mean_asd2 = np.mean(metric_list, axis=0)[2] ## asd
+                mean_iou2 = np.mean([tup[3] for tup in metric_list if not np.isnan(tup[3])])
+                
                 writer.add_scalar('info/model2_val_mean_dice',
                                   performance2, iter_num)
                 writer.add_scalar('info/model2_val_mean_hd95',
                                   mean_hd952, iter_num)
+                writer.add_scalar('info/model2_val_mean_asd',
+                                  mean_asd2, iter_num)
                 writer.add_scalar('info/model2_val_mean_iou',
-                                  mean_iou1, iter_num)
+                                  mean_iou2, iter_num)
 
                 if mean_iou2 > best_performance2:
                     best_performance2 = mean_iou2
                     save_mode_path = os.path.join(snapshot_path,
-                                                  'model2_iter_{}_dice_{}.pth'.format(
+                                                  'model2_iter_{}_iou_{}.pth'.format(
                                                       iter_num, round(best_performance2, 4)))
                     save_best = os.path.join(snapshot_path,
                                              '{}_best_model2.pth'.format(args.model))
@@ -404,7 +415,7 @@ def train(args, snapshot_path):
                     torch.save(model2.state_dict(), save_best)
 
                 logging.info(
-                    'iteration %d : model2_mean_dice : %f model2_mean_hd95 : %f model2_mean_iou : %f' % (iter_num, performance2, mean_hd952, mean_iou2))
+                    'iteration %d : model2_mean_dice : %f model2_mean_hd95 : %f model2_mean_asd : %f model2_mean_iou : %f' % (iter_num, performance2, mean_hd952, mean_asd2, mean_iou2))
                 model2.train()
 
             if iter_num % 3000 == 0:

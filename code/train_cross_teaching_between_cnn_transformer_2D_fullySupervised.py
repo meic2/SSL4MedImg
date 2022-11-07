@@ -116,6 +116,10 @@ if "Dermatomyositis" in args.root_path:
     TILE_IMAGE_PATH = '../../dataset/Dermatomyositis/tile_image/'
     TILE_LABEL_PATH = '../../dataset/Dermatomyositis/tile_label/'
     dataclass = 2
+elif "Dermato_interpolated" in args.root_path:
+    TILE_IMAGE_PATH = '../../dataset/Dermatomyositis/InterpolateOnly_image/'
+    TILE_LABEL_PATH = '../../dataset/Dermatomyositis/InterpolateOnly_label/'
+    dataclass = 3
 
 
 print(torch.cuda.is_available())
@@ -150,7 +154,7 @@ def patients_to_slices(dataset, patiens_num):
                     "14": 256, "21": 396, "28": 512, "35": 664, "140": 1036}
     elif "Dermatomyositis" in dataset:
         ref_dict = {"3": 68, "7": 136,
-                    "14": 256, "21": 396, "28": 512, "35": 664, "140": 1452} # 1452 if TilingOnly, 121 if InterpolateOnly
+                    "14": 256, "21": 396, "28": 512, "35": 664, "140": 121} # 1452 if TilingOnly, 121 if InterpolateOnly
     elif "Prostate":
         ref_dict = {"2": 27, "4": 53, "8": 120,
                     "12": 179, "16": 256, "21": 312, "42": 623}

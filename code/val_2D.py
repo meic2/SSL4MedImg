@@ -21,10 +21,11 @@ def calculate_metric_percase(pred, gt):
     if pred.sum() > 0:
         dice = metric.binary.dc(bool_pred, bool_gt)
         hd95 = metric.binary.hd95(bool_pred, bool_gt) if bool_gt.sum()>0 else 0
+        asd = metric.binary.asd(pred, gt)
         iou = calculate_metric_iou(pred, gt)
-        return dice, hd95, iou
+        return dice, hd95, asd, iou
     else:
-        return 0, 0, 0
+        return 0, 0, 0, 0
 
 
 def test_single_volume(image, label, net, classes, patch_size=[256, 256]):
