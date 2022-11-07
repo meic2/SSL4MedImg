@@ -333,6 +333,8 @@ def train(args, snapshot_path):
                         sampled_batch["image"], sampled_batch["label"].squeeze(1), model1, classes=num_classes, patch_size=args.patch_size)
                     if metric_i != []:
                         # if sample groundtruth label are empty, ignore this validation sample;
+                        # print(f"metric_i: {metric_i}, metric_i.shape: {np.array(metric_i).shape}") 
+                        # metric_i: [(0, 0, 0, 0)], metric_i.shape: (1, 4)
                         metric_list += np.array(metric_i)
                 metric_list = metric_list / len(db_val)
                 for class_i in range(num_classes-1):
@@ -380,7 +382,9 @@ def train(args, snapshot_path):
                     # print(sampled_batch["image"].shape, sampled_batch["label"].shape)
                     metric_i = test_single_volume(
                         sampled_batch["image"], sampled_batch["label"].squeeze(1), model2, classes=num_classes, patch_size=args.patch_size)
-                    metric_list += np.array(metric_i)
+                    if metric_i != []:
+                        # if sample groundtruth label are empty, ignore this validation sample;
+                        metric_list += np.array(metric_i)                
                 metric_list = metric_list / len(db_val)
                 for class_i in range(num_classes-1):
                     writer.add_scalar('info/model2_val_{}_dice'.format(class_i+1),
