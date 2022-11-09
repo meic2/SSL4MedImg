@@ -91,7 +91,7 @@ class CustomDataset(Dataset):
             sample = {"image":inputs, "label":mask_label}
         return sample
 
-def build_dataloader(data_path, tile_image_path, tile_label_path, 
+def build_dataset(data_path, tile_image_path, tile_label_path, 
                     transform_train, transform_val, transform_test, dataclass):
     '''
     @variable:
@@ -178,7 +178,7 @@ def build_dataloader(data_path, tile_image_path, tile_label_path,
             test_list
             
 
-def build_dataloader_ssl(data_path, tile_image_path, tile_label_path, dataclass):
+def build_dataset_ssl(data_path, tile_image_path, tile_label_path, dataclass):
     '''
     @variable:
         dataclass (int): Dermofit=1, tiled Dermatomyositis=2, interpolated Dermatomyositis=3
@@ -190,7 +190,7 @@ def build_dataloader_ssl(data_path, tile_image_path, tile_label_path, dataclass)
     transform_val=transforms.Compose([transforms.ToPILImage(),transforms.ToTensor()])
     transform_test=transforms.Compose([transforms.ToPILImage(),transforms.ToTensor()])
 
-    return build_dataloader(
+    return build_dataset(
         data_path, tile_image_path, tile_label_path, 
 
         transform_train, transform_val, transform_test, dataclass)
@@ -202,7 +202,7 @@ if __name__ == '__main__':
  TILE_IMAGE_PATH = '../../dataset/Dermatomyositis/tile_image/'
  TILE_LABEL_PATH = '../../dataset/Dermatomyositis/tile_label/'
  
- train_loader, validation_laoder, test_loader = build_dataloader(DATA_PATH, TILE_IMAGE_PATH, TILE_LABEL_PATH, 
+ train_loader, validation_laoder, test_loader = build_dataset(DATA_PATH, TILE_IMAGE_PATH, TILE_LABEL_PATH, 
                                                            transform_train = None, transform_val = None, transform_test = None,
                                                            isDermorfit = 'Dermofit' in DATA_PATH)
  

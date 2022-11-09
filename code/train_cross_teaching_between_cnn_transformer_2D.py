@@ -47,6 +47,8 @@ from val_2D import test_single_volume
 parser = argparse.ArgumentParser()
 parser.add_argument('--root_path', type=str,
                     default='../../DEDL_dataset/Dermofit', help='Name of Experiment')
+parser.add_argument('--data_class', type=int, default=None,
+                    help = '1 for Dermofit, 2 for Dermatomyositis TilingOnly, 3 for Dermatomyositis interpolateOnly')
 parser.add_argument('--exp', type=str,
                     default='Dermofit/Cross_Teaching_CNN_Transformer', help='experiment_name')
 parser.add_argument('--model', type=str,
@@ -459,6 +461,7 @@ if __name__ == "__main__":
 
     snapshot_path = "../model/{}_{}/{}".format(
         args.exp, args.labeled_num, args.model)
+    print(f"snapshot_path: {snapshot_path}")
     if not os.path.exists(snapshot_path):
         os.makedirs(snapshot_path)
     if os.path.exists(snapshot_path + '/code'):

@@ -38,7 +38,7 @@ from tqdm import tqdm
 from config import get_config
 from dataloaders import utils
 from dataloaders.dataset import TwoStreamBatchSampler #BaseDataSets, RandomGenerator,
-from dataloaders.dermofit_processing import build_dataloader_ssl
+from dataloaders.dermofit_processing import build_dataset_ssl
 from networks.net_factory import net_factory
 from networks.auto_encoder import Autoencoder
 from networks.vision_transformer import SwinUnet as ViT_seg
@@ -147,7 +147,7 @@ def xavier_normal_init_weight(model):
 
 def patients_to_slices(dataset, patiens_num, traindataset_len, UsePercentage_flag = False):
     ref_dict = None
-    ref_dict_percentage = {"30p": round(0.3*traindataset_len), "50p": round(0.5*traindataset_len),
+    ref_dict_percentage = {"10p": round(0.1*traindataset_len), "30p": round(0.3*traindataset_len), "50p": round(0.5*traindataset_len),
                         "70p": round(0.7*traindataset_len), "99p": traindataset_len-1, "100p": 1*traindataset_len} 
     if "ACDC" in dataset:
         ref_dict = {"3": 68, "7": 136,
@@ -214,7 +214,7 @@ def train(args, snapshot_path):
     #     RandomGenerator(args.patch_size)
     # ]))
     # db_val = BaseDataSets(base_dir=args.root_path, split="val")
-    db_train, db_val, db_test,  _, _, _ = build_dataloader_ssl(DATA_PATH, TILE_IMAGE_PATH, TILE_LABEL_PATH, data_class)
+    db_train, db_val, db_test,  _, _, _ = build_dataset_ssl(DATA_PATH, TILE_IMAGE_PATH, TILE_LABEL_PATH, data_class)
 
     total_slices = len(db_train)
     labeled_slice = patients_to_slices(args.root_path, args.labeled_num, len(db_train), UsePercentage_flag=True)

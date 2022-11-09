@@ -8,7 +8,7 @@ from medpy import metric
 from scipy.ndimage import zoom
 from tqdm import tqdm
 from networks.net_factory import net_factory
-from dataloaders.dermofit_processing import build_dataloader_ssl
+from dataloaders.dermofit_processing import build_dataset_ssl
 from torch.utils.data import DataLoader
 from config import get_config
 from networks.vision_transformer import SwinUnet as ViT_seg
@@ -81,8 +81,8 @@ elif FLAGS.data_class ==2:
     TILE_LABEL_PATH = '/scratch/lc4866/dataset/Dermatomyositis/tile_label/'
 elif FLAGS.data_class ==3:
     DATA_PATH = '/scratch/lc4866/dataset/Dermatomyositis/original_data/'
-    TILE_IMAGE_PATH = '/scratch/lc4866/dataset/Dermatomyositis/interpolateOnly_image/'
-    TILE_LABEL_PATH = '/scratch/lc4866/dataset/Dermatomyositis/interpolateOnly_label/'
+    TILE_IMAGE_PATH = '/scratch/lc4866/dataset/Dermatomyositis/InterpolateOnly_image/'
+    TILE_LABEL_PATH = '/scratch/lc4866/dataset/Dermatomyositis/InterpolateOnly_label/'
 
 
 def calculate_metric_iou(pred, label):
@@ -158,7 +158,7 @@ def test_single_volume(sample, image_name, net, test_save_path, FLAGS):
     return first_metric#, second_metric, third_metric
 
 def Inference(FLAGS):
-    _, _, test_dataset, _, _, test_list = build_dataloader_ssl(data_path=DATA_PATH, 
+    _, _, test_dataset, _, _, test_list = build_dataset_ssl(data_path=DATA_PATH, 
                                             tile_image_path=TILE_IMAGE_PATH,
                                             tile_label_path=TILE_LABEL_PATH, 
                                             dataclass=FLAGS.data_class)
