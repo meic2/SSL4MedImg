@@ -111,20 +111,20 @@ args = parser.parse_args()
 config = get_config(args)
 print(args)
 
-data_class = 1
-DATA_PATH = '../../dataset/Dermofit/original_data/'
-TILE_IMAGE_PATH = '../../dataset/Dermofit_resize_noTiling/resize_image/'
-TILE_LABEL_PATH = '../../dataset/Dermofit_resize_noTiling/resize_label/'
-if "Dermatomyositis" in args.root_path:
+if args.data_class == 1:
+    DATA_PATH = '../../dataset/Dermofit/original_data/'
+    TILE_IMAGE_PATH = '../../dataset/Dermofit_resize_noTiling/resize_image/'
+    TILE_LABEL_PATH = '../../dataset/Dermofit_resize_noTiling/resize_label/'
+if args.data_class == 2:
     DATA_PATH = '../../dataset/Dermatomyositis/original_data/'
     TILE_IMAGE_PATH = '../../dataset/Dermatomyositis/tile_image/'
     TILE_LABEL_PATH = '../../dataset/Dermatomyositis/tile_label/'
-    data_class = 2
-elif "Dermato_interpolated" in args.root_path:
+
+elif args.data_class == 3:
     DATA_PATH = '../../dataset/Dermatomyositis/original_data/'
     TILE_IMAGE_PATH = '../../dataset/Dermatomyositis/InterpolateOnly_image/'
     TILE_LABEL_PATH = '../../dataset/Dermatomyositis/InterpolateOnly_label/'
-    data_class = 3
+
 
 print(torch.cuda.is_available())
 def kaiming_normal_init_weight(model):
@@ -195,7 +195,7 @@ def train(args, snapshot_path):
 
     def create_model(ema=False):
         # Network definition
-        model = net_factory(args, config, net_type=args.model, in_chns=3 if "Dermofit" in args.root_path else 1, 
+        model = net_factory(args, config, net_type=args.model, in_chns=3 if args.dataclass ==1 else 1, 
                             class_num=num_classes)
         if ema:
             for param in model.parameters():
@@ -215,7 +215,7 @@ def train(args, snapshot_path):
     #     RandomGenerator(args.patch_size)
     # ]))
     # db_val = BaseDataSets(base_dir=args.root_path, split="val")
-    db_train, db_val, db_test,  _, _, _ = build_dataloader_ssl(DATA_PATH, TILE_IMAGE_PATH, TILE_LABEL_PATH, data_class)
+    db_train, db_val, db_test,  _, _, _ = build_dataloader_ssl(DATA_PATH, TILE_IMAGE_PATH, TILE_LABEL_PATH, args.data_class)
 
     total_slices = len(db_train)
     labeled_slice = patients_to_slices(args.root_path, args.labeled_num, len(db_train), UsePercentage_flag=True)
@@ -239,10 +239,8 @@ def train(args, snapshot_path):
     valloader = DataLoader(db_val, batch_size=1, shuffle=False,
                            num_workers=1)
 
-    optimizer1 = optim.SGD(model1.parameters(), lr=base_lr,
-                           momentum=0.9, weight_decay=0.0001)
-    optimizer2 = optim.SGD(model2.parameters(), lr=base_lr,
-                           momentum=0.9, weight_decay=0.0001)
+    optimizer1 = optim.Adam(model1.parameters(), lr=3.6e-04, weight_decay=1e-05)
+    optimizer2 = optim.Adam(model2.parameters(), lr=3.6e-04, weight_decay=1e-05)
 
     scheduler1 = lr_scheduler.CosineAnnealingLR(optimizer1, T_max=5, eta_min=5e-6,last_epoch=-1)
     scheduler2 = lr_scheduler.CosineAnnealingLR(optimizer2, T_max=5, eta_min=5e-6,last_epoch=-1)
@@ -298,18 +296,18 @@ def train(args, snapshot_path):
 
             loss.backward()
 
-            optimizer1.step()
-            optimizer2.step()
+            scheduler1.step()
+            scheduler2.step()
 
             iter_num = iter_num + 1
 
-            lr_ = base_lr * (1.0 - iter_num / max_iterations) ** 0.9
-            for param_group in optimizer1.param_groups:
-                param_group['lr'] = lr_
-            for param_group in optimizer2.param_groups:
-                param_group['lr'] = lr_
+            # lr_ = base_lr * (1.0 - iter_num / max_iterations) ** 0.9
+            # for param_group in optimizer1.param_groups:
+            #     param_group['lr'] = lr_
+            # for param_group in optimizer2.param_groups:
+            #     param_group['lr'] = lr_
 
-            writer.add_scalar('lr', lr_, iter_num)
+            # writer.add_scalar('lr', lr_, iter_num)
             writer.add_scalar(
                 'consistency_weight/consistency_weight', consistency_weight, iter_num)
             writer.add_scalar('loss/model1_loss',

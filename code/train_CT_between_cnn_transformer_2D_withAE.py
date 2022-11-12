@@ -53,6 +53,8 @@ parser.add_argument('--exp', type=str,
                     default='Dermofit/Cross_Teaching_CNN_Transformer', help='experiment_name')
 parser.add_argument('--model', type=str,
                     default='unet', help='model_name')
+parser.add_argument('--data_class', type=int, default=None,
+                    help = '1 for Dermofit, 2 for Dermatomyositis TilingOnly, 3 for Dermatomyositis interpolateOnly')
 parser.add_argument('--max_iterations', type=int,
                     default=10000, help='maximum epoch number to train')
 parser.add_argument('--batch_size', type=int, default=16,
@@ -111,20 +113,19 @@ config = get_config(args)
 print(args)
 print("IN CT_wAE training")
 
-data_class = 1
-DATA_PATH = '../../dataset/Dermofit/original_data/'
-TILE_IMAGE_PATH = '../../dataset/Dermofit_resize_noTiling/resize_image/'
-TILE_LABEL_PATH = '../../dataset/Dermofit_resize_noTiling/resize_label/'
-if "Dermatomyositis" in args.root_path:
+if args.data_class == 1:
+    DATA_PATH = '../../dataset/Dermofit/original_data/'
+    TILE_IMAGE_PATH = '../../dataset/Dermofit_resize_noTiling/resize_image/'
+    TILE_LABEL_PATH = '../../dataset/Dermofit_resize_noTiling/resize_label/'
+if args.data_class == 2:
     DATA_PATH = '../../dataset/Dermatomyositis/original_data/'
     TILE_IMAGE_PATH = '../../dataset/Dermatomyositis/tile_image/'
     TILE_LABEL_PATH = '../../dataset/Dermatomyositis/tile_label/'
-    data_class = 2
-elif "Dermato_interpolated" in args.root_path:
+elif args.data_class == 3:
     DATA_PATH = '../../dataset/Dermatomyositis/original_data/'
     TILE_IMAGE_PATH = '../../dataset/Dermatomyositis/InterpolateOnly_image/'
     TILE_LABEL_PATH = '../../dataset/Dermatomyositis/InterpolateOnly_label/'
-    data_class = 3
+
 
 print(torch.cuda.is_available())
 def kaiming_normal_init_weight(model):
@@ -195,7 +196,7 @@ def train(args, snapshot_path):
 
     def create_model(ema=False):
         # Network definition
-        model = net_factory(args, config, net_type=args.model, in_chns=3 if "Dermofit" in args.root_path else 1, 
+        model = net_factory(args, config, net_type=args.model, in_chns=3 if args.dataclass ==1  else 1, 
                             class_num=num_classes)
         if ema:
             for param in model.parameters():
@@ -215,7 +216,7 @@ def train(args, snapshot_path):
     #     RandomGenerator(args.patch_size)
     # ]))
     # db_val = BaseDataSets(base_dir=args.root_path, split="val")
-    db_train, db_val, db_test,  _, _, _ = build_dataset_ssl(DATA_PATH, TILE_IMAGE_PATH, TILE_LABEL_PATH, data_class)
+    db_train, db_val, db_test,  _, _, _ = build_dataset_ssl(DATA_PATH, TILE_IMAGE_PATH, TILE_LABEL_PATH, args.data_class)
 
     total_slices = len(db_train)
     labeled_slice = patients_to_slices(args.root_path, args.labeled_num, len(db_train), UsePercentage_flag=True)

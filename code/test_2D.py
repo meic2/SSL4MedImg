@@ -30,7 +30,7 @@ parser.add_argument('--exp', type=str,
 parser.add_argument('--model', type=str,
                     default='unet', help='model_name')
 parser.add_argument('--saved_model_path', type=str,
-                    default='/scratch/lc4866/SSL4MedImg/model/Dermatomyositis/CT_Between_CNN_Transformer_TilingOnly_3/unet/unet_best_model1.pth', help='model you are testing')
+                    default='Default', help='model you are testing')
 parser.add_argument('--batch_size', type=int, default=8,
                         help='batch_size per gpu')
 parser.add_argument('--num_classes', type=int,  default=2,
@@ -172,15 +172,18 @@ def Inference(FLAGS):
     os.makedirs(test_save_path)
     if FLAGS.one_or_two == 1:   ## CNN
         print('testing model1 (UNET)...')
-        net = net_factory(FLAGS, config, net_type=FLAGS.model, in_chns=3 if "Dermofit" in FLAGS.root_path else 1,
+        net = net_factory(FLAGS, config, net_type=FLAGS.model, in_chns=3 if FLAGS.data_class == 1 else 1,
                         class_num=FLAGS.num_classes)
     elif FLAGS.one_or_two == 2: ## transformer
         print('testing model2 (SwinTransformer)...')
         net = ViT_seg(config, img_size=FLAGS.patch_size,
                      num_classes=FLAGS.num_classes).to(device)
     
-    net.load_state_dict(torch.load(FLAGS.saved_model_path))
-    print("init weight from {}".format(FLAGS.saved_model_path))
+    saved_model_path = f"../model/{FLAGS.exp}_{FLAGS.labeled_num}/{FLAGS.model}/{FLAGS.model}_best_model{FLAGS.one_or_two}.pth"
+    if FLAGS.saved_model_path != 'Default':
+        saved_model_path = FLAGS.saved_model_path
+    print("init weight from {}".format(saved_model_path)) 
+    net.load_state_dict(torch.load(saved_model_path))
     net.eval()
 
     first_total = 0.0
