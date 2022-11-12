@@ -108,6 +108,7 @@ parser.add_argument('--consistency_rampup', type=float,
 args = parser.parse_args()
 config = get_config(args)
 print(args)
+print("IN CT_wAE training")
 
 data_class = 1
 DATA_PATH = '../../dataset/Dermofit/original_data/'
@@ -147,7 +148,7 @@ def xavier_normal_init_weight(model):
 
 def patients_to_slices(dataset, patiens_num, traindataset_len, UsePercentage_flag = False):
     ref_dict = None
-    ref_dict_percentage = {"30p": round(0.3*traindataset_len), "50p": round(0.5*traindataset_len),
+    ref_dict_percentage = {"10p": round(0.1*traindataset_len), "30p": round(0.3*traindataset_len), "50p": round(0.5*traindataset_len),
                         "70p": round(0.7*traindataset_len), "99p": traindataset_len-1, "100p": 1*traindataset_len} 
     if "ACDC" in dataset:
         ref_dict = {"3": 68, "7": 136,
@@ -201,7 +202,6 @@ def train(args, snapshot_path):
         return model
 
     model1 = create_model()
-    print(config)
     model2 = ViT_seg(config, img_size=args.patch_size,
                      num_classes=args.num_classes).cuda()
     model2.load_from(config)
@@ -346,7 +346,6 @@ def train(args, snapshot_path):
                     if metric_i != []:
                         # if sample groundtruth label are empty, ignore this validation sample;
                         metric_list += np.array(metric_i)
-                    metric_list = metric_list / len(db_val)
                 metric_list = metric_list / len(db_val)
                 for class_i in range(num_classes-1):
                     writer.add_scalar('info/model1_val_{}_dice'.format(class_i+1),

@@ -17,8 +17,8 @@
 ## semi-supervised ####
 python train_cross_teaching_between_cnn_transformer_2D.py \
 --root_path '../../dataset/Dermatomyositis' \
---exp 'Dermatomyositis_percentage/CT_Between_CNN_Transformer_TilingOnly' \
---labeled_num 30p \
+--exp 'Dermatomyositis/CT_CNN_Transformer' \
+--labeled_num 10p \
 --batch_size 16 \
 --labeled_bs 8
 

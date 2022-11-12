@@ -99,6 +99,8 @@ def calculate_metric_percase(pred, gt):
     gt = gt.cpu().detach().numpy()
     pred[pred > 0] = 1
     gt[gt > 0] = 1
+    if gt.sum()==0:
+        return []
     if pred.sum() > 0 and gt.sum()>0:
         dice = metric.binary.dc(pred, gt)
         hd95 = metric.binary.hd95(pred, gt)
@@ -190,7 +192,8 @@ def Inference(FLAGS):
         # print(f"testing image name = {test_list[idx]}") # testing image name = ('121919_Myo231_[9554,43072]_component_data_0.npy', '121919_Myo231_[9554,43072]_component_mask_0.npy')
         first_metric= test_single_volume(
             test_dataset[idx], test_list[idx][0][:-4], net, test_save_path, FLAGS)
-        first_total += np.asarray(first_metric)
+        if first_metric != []:
+            first_total += np.asarray(first_metric)
         # second_total += np.asarray(second_metric)
         # third_total += np.asarray(third_metric)
     # avg_metric = [first_total / len(image_list), second_total /

@@ -146,7 +146,7 @@ def xavier_normal_init_weight(model):
 
 def patients_to_slices(dataset, patiens_num, traindataset_len, UsePercentage_flag = False):
     ref_dict = None
-    ref_dict_percentage = {"30p": round(0.3*traindataset_len), "50p": round(0.5*traindataset_len),
+    ref_dict_percentage = {"10p": round(0.1*traindataset_len), "30p": round(0.3*traindataset_len), "50p": round(0.5*traindataset_len),
                         "70p": round(0.7*traindataset_len), "99p": traindataset_len-1, "100p": 1*traindataset_len} 
     if "ACDC" in dataset:
         ref_dict = {"3": 68, "7": 136,

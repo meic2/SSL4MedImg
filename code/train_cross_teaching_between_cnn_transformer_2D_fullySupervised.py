@@ -203,7 +203,7 @@ def train(args, snapshot_path):
     #     RandomGenerator(args.patch_size)
     # ]))
     # db_val = BaseDataSets(base_dir=args.root_path, split="val")
-    db_train, db_val, db_test, _, _, _ = build_dataloader_ssl(DATA_PATH, TILE_IMAGE_PATH, TILE_LABEL_PATH, dataclass=data_class)
+    db_train, db_val, db_test, _, _, _ = build_dataloader_ssl(DATA_PATH, TILE_IMAGE_PATH, TILE_LABEL_PATH, dataclass=dataclass)
 
     # total_slices = len(db_train)
     # labeled_slice = patients_to_slices(args.root_path, args.labeled_num)
@@ -324,7 +324,7 @@ def train(args, snapshot_path):
                         sampled_batch["image"], sampled_batch["label"].squeeze(1), model1, classes=num_classes, patch_size=args.patch_size)
                     if metric_i != []:
                         # if sample groundtruth label are empty, ignore this validation sample;
-                        metric_list.append(metric_i)
+                        metric_list += np.array(metric_i)
                     metric_list = metric_list / len(db_val)
                 for class_i in range(num_classes-1):
                     writer.add_scalar('info/model1_val_{}_dice'.format(class_i+1),
@@ -370,7 +370,7 @@ def train(args, snapshot_path):
                         sampled_batch["image"], sampled_batch["label"].squeeze(1), model2, classes=num_classes, patch_size=args.patch_size)
                     if metric_i != []:
                         # if sample groundtruth label are empty, ignore this validation sample;
-                        metric_list.append(metric_i)
+                        metric_list += np.array(metric_i)
                     metric_list = metric_list / len(db_val)
                 metric_list = metric_list / len(db_val)
                 for class_i in range(num_classes-1):
