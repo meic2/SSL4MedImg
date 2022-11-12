@@ -248,7 +248,6 @@ def train(args, snapshot_path):
     
     scheduler1 = lr_scheduler.CosineAnnealingLR(optimizer1, T_max=5, eta_min=5e-6,last_epoch=-1)
     scheduler2 = lr_scheduler.CosineAnnealingLR(optimizer2, T_max=5, eta_min=5e-6,last_epoch=-1)
-    scheduler_AE = lr_scheduler.CosineAnnealingLR(optimizer_AE, T_max=5, eta_min=5e-6,last_epoch=-1)
 
     ce_loss = CrossEntropyLoss()
     dice_loss = losses.DiceLoss(num_classes)
@@ -316,7 +315,6 @@ def train(args, snapshot_path):
             
             scheduler1.step()
             scheduler2.step()
-            scheduler_AE.step()
 
             iter_num = iter_num + 1
 
