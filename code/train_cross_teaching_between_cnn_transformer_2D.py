@@ -43,10 +43,13 @@ from networks.net_factory import net_factory
 from networks.vision_transformer import SwinUnet as ViT_seg
 from utils import losses, metrics, ramps
 from val_2D import test_single_volume
+from torch.optim import lr_scheduler
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--root_path', type=str,
                     default='../../DEDL_dataset/Dermofit', help='Name of Experiment')
+parser.add_argument('--data_class', type=int, default=None,
+                    help = '1 for Dermofit, 2 for Dermatomyositis TilingOnly, 3 for Dermatomyositis interpolateOnly')
 parser.add_argument('--exp', type=str,
                     default='Dermofit/Cross_Teaching_CNN_Transformer', help='experiment_name')
 parser.add_argument('--model', type=str,
@@ -240,6 +243,11 @@ def train(args, snapshot_path):
                            momentum=0.9, weight_decay=0.0001)
     optimizer2 = optim.SGD(model2.parameters(), lr=base_lr,
                            momentum=0.9, weight_decay=0.0001)
+
+    scheduler1 = lr_scheduler.CosineAnnealingLR(optimizer1, T_max=5, eta_min=5e-6,last_epoch=-1)
+    scheduler2 = lr_scheduler.CosineAnnealingLR(optimizer2, T_max=5, eta_min=5e-6,last_epoch=-1)
+
+
     ce_loss = CrossEntropyLoss()
     dice_loss = losses.DiceLoss(num_classes)
 
@@ -344,7 +352,7 @@ def train(args, snapshot_path):
                                       metric_list[class_i, 1], iter_num)
                     writer.add_scalar('info/model1_val_{}_asd'.format(class_i+1),
                                       metric_list[class_i, 2], iter_num)
-                    writer.add_scalar('infor/model1_val_{}_iou'.format(class_i+1), 
+                    writer.add_scalar('info/model1_val_{}_iou'.format(class_i+1), 
                                       metric_list[class_i, 3], iter_num)
 
                 performance1 = np.mean(metric_list, axis=0)[0] ## dice
@@ -391,9 +399,9 @@ def train(args, snapshot_path):
                                       metric_list[class_i, 0], iter_num)
                     writer.add_scalar('info/model2_val_{}_hd95'.format(class_i+1),
                                       metric_list[class_i, 1], iter_num)
-                    writer.add_scalar('infor/model2_val_{}_asd'.format(class_i+1), 
+                    writer.add_scalar('info/model2_val_{}_asd'.format(class_i+1), 
                                       metric_list[class_i, 2], iter_num)
-                    writer.add_scalar('infor/model2_val_{}_iou'.format(class_i+1), 
+                    writer.add_scalar('info/model2_val_{}_iou'.format(class_i+1), 
                                       metric_list[class_i, 3], iter_num)
 
                 performance2 = np.mean(metric_list, axis=0)[0] ## dice
@@ -459,6 +467,7 @@ if __name__ == "__main__":
 
     snapshot_path = "../model/{}_{}/{}".format(
         args.exp, args.labeled_num, args.model)
+    print(f"snapshot_path: {snapshot_path}")
     if not os.path.exists(snapshot_path):
         os.makedirs(snapshot_path)
     if os.path.exists(snapshot_path + '/code'):

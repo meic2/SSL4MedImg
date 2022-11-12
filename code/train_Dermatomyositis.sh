@@ -22,13 +22,21 @@ python train_cross_teaching_between_cnn_transformer_2D.py \
 --batch_size 16 \
 --labeled_bs 8
 
-### with AE, InterpolateOnly, semi-supervised ####
+# ### with AE, InterpolateOnly, semi-supervised ####
 # python train_CT_between_cnn_transformer_2D_withAE.py \
 # --root_path '../../dataset/Dermato_interpolated' \
 # --exp 'Dermatomyositis_percentage_withAE/CT_Between_CNN_Transformer_InterpolateOnly' \
-# --labeled_num 30p \
+# --labeled_num 10p \
 # --batch_size 16 \
 # --labeled_bs 8
+
+### with AE, TilingOnly, semi-supervised ####
+python train_CT_between_cnn_transformer_2D_withAE.py \
+--root_path '../../dataset/Dermofit' \
+--exp 'Dermofit_percentage_withAE/CT_Between_CNN_Transformer_InterpolateOnly' \
+--labeled_num 10p \
+--batch_size 16 \
+--labeled_bs 8
 
 
 

@@ -38,12 +38,13 @@ from tqdm import tqdm
 from config import get_config
 from dataloaders import utils
 from dataloaders.dataset import TwoStreamBatchSampler #BaseDataSets, RandomGenerator,
-from dataloaders.dermofit_processing import build_dataloader_ssl
+from dataloaders.dermofit_processing import build_dataset_ssl
 from networks.net_factory import net_factory
 from networks.auto_encoder import Autoencoder
 from networks.vision_transformer import SwinUnet as ViT_seg
 from utils import losses, metrics, ramps
 from val_2D import test_single_volume
+from torch.optim import lr_scheduler
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--root_path', type=str,
@@ -214,7 +215,7 @@ def train(args, snapshot_path):
     #     RandomGenerator(args.patch_size)
     # ]))
     # db_val = BaseDataSets(base_dir=args.root_path, split="val")
-    db_train, db_val, db_test,  _, _, _ = build_dataloader_ssl(DATA_PATH, TILE_IMAGE_PATH, TILE_LABEL_PATH, data_class)
+    db_train, db_val, db_test,  _, _, _ = build_dataset_ssl(DATA_PATH, TILE_IMAGE_PATH, TILE_LABEL_PATH, data_class)
 
     total_slices = len(db_train)
     labeled_slice = patients_to_slices(args.root_path, args.labeled_num, len(db_train), UsePercentage_flag=True)
@@ -239,15 +240,18 @@ def train(args, snapshot_path):
     valloader = DataLoader(db_val, batch_size=1, shuffle=False,
                            num_workers=1)
 
-    optimizer1 = optim.SGD(model1.parameters(), lr=base_lr,
-                           momentum=0.9, weight_decay=0.0001)
-    optimizer2 = optim.SGD(model2.parameters(), lr=base_lr,
-                           momentum=0.9, weight_decay=0.0001)
+    optimizer1 = optim.Adam(model1.parameters(), lr=3.6e-04, weight_decay=1e-05)
+
+    optimizer2 = optim.Adam(model2.parameters(), lr=3.6e-04, weight_decay=1e-05)
+
     optimizer_AE = optim.Adam(AE.parameters(), lr=1e-3)
     
+    scheduler1 = lr_scheduler.CosineAnnealingLR(optimizer1, T_max=5, eta_min=5e-6,last_epoch=-1)
+    scheduler2 = lr_scheduler.CosineAnnealingLR(optimizer2, T_max=5, eta_min=5e-6,last_epoch=-1)
+
     ce_loss = CrossEntropyLoss()
     dice_loss = losses.DiceLoss(num_classes)
-    criterion2 = nn.MSELoss()
+    criterion_AE = CrossEntropyLoss()
     writer = SummaryWriter(snapshot_path + '/log')
     logging.info("{} iterations per epoch".format(len(trainloader)))
 
@@ -262,19 +266,22 @@ def train(args, snapshot_path):
             volume_batch, label_batch = volume_batch.cuda(), label_batch.cuda()
             #change dimension
             label_batch = label_batch.squeeze(1)
+            # print(f"volume_batch.shape: {volume_batch.shape}, label_batch.shape: {label_batch.shape}") # volume_batch.shape: torch.Size([16, 3, 480, 480]), label_batch.shape: torch.Size([16, 480, 480])
             outputs1 = model1(volume_batch)
+            ae_output1 = AE(outputs1[:args.labeled_bs])             ## add auto-encoder to only the labaled part
+            # print(f"ae_output1.shape: {ae_output1.shape}") # ae_output1.shape: torch.Size([16, 2, 480, 480])
             outputs_soft1 = torch.softmax(outputs1, dim=1)
 
             outputs2 = model2(volume_batch)
+            ae_output2 = AE(outputs2[:args.labeled_bs])             ## add auto-encoder to only the labaled part
+            # print(f"ae_output2.shape: {ae_output2.shape}") # ae_output2.shape: torch.Size([16, 2, 480, 480])
             outputs_soft2 = torch.softmax(outputs2, dim=1)
-            # print("outputs1.shape, outputs2.shape: ", outputs1.shape, outputs2.shape) # outputs1.shape, outputs2.shape:  torch.Size([16, 2, 480, 480]) torch.Size([16, 2, 480, 480])
             consistency_weight = get_current_consistency_weight(
                 iter_num // 150)
-            # print(outputs1.shape, label_batch.shape, args.labeled_bs)
             loss1 = 0.5 * (ce_loss(outputs1[:args.labeled_bs], label_batch[:args.labeled_bs].long()) + dice_loss(
-                outputs_soft1[:args.labeled_bs], label_batch[:args.labeled_bs].unsqueeze(1)))
+                outputs_soft1[:args.labeled_bs], label_batch[:args.labeled_bs].unsqueeze(1))) + criterion_AE(ae_output1, label_batch[:args.labeled_bs].long())
             loss2 = 0.5 * (ce_loss(outputs2[:args.labeled_bs], label_batch[:args.labeled_bs].long()) + dice_loss(
-                outputs_soft2[:args.labeled_bs], label_batch[:args.labeled_bs].unsqueeze(1)))
+                outputs_soft2[:args.labeled_bs], label_batch[:args.labeled_bs].unsqueeze(1))) + criterion_AE(ae_output2, label_batch[:args.labeled_bs].long())
 
             pseudo_outputs1 = torch.argmax(
                 outputs_soft1[args.labeled_bs:].detach(), dim=1, keepdim=False)
@@ -286,34 +293,33 @@ def train(args, snapshot_path):
             pseudo_supervision2 = dice_loss(
                 outputs_soft2[args.labeled_bs:], pseudo_outputs1.unsqueeze(1))
 
-            ## add auto-encoder
-            unlabeld_ae1 = AE(outputs_soft1[args.labeled_bs:])
-            unlabeld_ae2 = AE(outputs_soft2[args.labeled_bs:])
-            AE_loss = criterion2(unlabeld_ae1, unlabeld_ae2)
-            
             model1_loss = loss1 + consistency_weight * pseudo_supervision1
             model2_loss = loss2 + consistency_weight * pseudo_supervision2
 
-            loss = model1_loss + model2_loss + AE_loss
+            loss = model1_loss + model2_loss 
 
             optimizer1.zero_grad()
             optimizer2.zero_grad()
+            optimizer_AE.zero_grad()
 
             loss.backward()
 
             optimizer1.step()
             optimizer2.step()
             optimizer_AE.step()
+            
+            scheduler1.step()
+            scheduler2.step()
 
             iter_num = iter_num + 1
 
-            lr_ = base_lr * (1.0 - iter_num / max_iterations) ** 0.9
-            for param_group in optimizer1.param_groups:
-                param_group['lr'] = lr_
-            for param_group in optimizer2.param_groups:
-                param_group['lr'] = lr_
+            # lr_ = base_lr * (1.0 - iter_num / max_iterations) ** 0.9
+            # for param_group in optimizer1.param_groups:
+            #     param_group['lr'] = lr_
+            # for param_group in optimizer2.param_groups:
+            #     param_group['lr'] = lr_
 
-            writer.add_scalar('lr', lr_, iter_num)
+            # writer.add_scalar('lr', lr_, iter_num)
             writer.add_scalar(
                 'consistency_weight/consistency_weight', consistency_weight, iter_num)
             writer.add_scalar('loss/model1_loss',
