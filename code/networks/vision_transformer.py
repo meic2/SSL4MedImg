@@ -17,7 +17,11 @@ import numpy as np
 from torch.nn import CrossEntropyLoss, Dropout, Softmax, Linear, Conv2d, LayerNorm
 from torch.nn.modules.utils import _pair
 from scipy import ndimage
-from networks.swin_transformer_unet_skip_expand_decoder_sys import SwinTransformerSys
+try:
+    from networks.swin_transformer_unet_skip_expand_decoder_sys import SwinTransformerSys
+except:
+    from swin_transformer_unet_skip_expand_decoder_sys import SwinTransformerSys
+    
 
 logger = logging.getLogger(__name__)
 
@@ -64,8 +68,8 @@ class SwinUnet(nn.Module):
                     if "output" in k:
                         print("delete key:{}".format(k))
                         del pretrained_dict[k]
-                msg = self.swin_unet.load_state_dict(pretrained_dict,strict=False)
-                # print(msg)
+                msg = self.swin_unet.load_state_dict(pretrained_dict, strict=False)
+                print(msg)
                 return
             pretrained_dict = pretrained_dict['model']
             print("---start load pretrained modle of swin encoder---")
@@ -84,6 +88,45 @@ class SwinUnet(nn.Module):
                         del full_dict[k]
 
             msg = self.swin_unet.load_state_dict(full_dict, strict=False)
+            print(msg)
         else:
             print("none pretrain")
  
+if __name__ == "__main__":
+    import config_copy
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+'--cfg', type=str, default="../configs/swin_tiny_patch4_window7_224_lite.yaml", help='path to config file', )
+    parser.add_argument(
+    "--opts",
+    help="Modify config options by adding 'KEY VALUE' pairs. ",
+    default=None,
+    nargs='+',
+)
+    parser.add_argument('--zip', action='store_true',
+                    help='use zipped dataset instead of folder dataset')
+    parser.add_argument('--cache-mode', type=str, default='part', choices=['no', 'full', 'part'],
+                        help='no: no cache, '
+                        'full: cache all data, '
+                        'part: sharding the dataset into nonoverlapping pieces and only cache one piece')
+    parser.add_argument('--resume', help='resume from checkpoint')
+    parser.add_argument('--accumulation-steps', type=int,
+                        help="gradient accumulation steps")
+    parser.add_argument('--use-checkpoint', action='store_true',
+                        help="whether to use gradient checkpointing to save memory")
+    parser.add_argument('--amp-opt-level', type=str, default='O1', choices=['O0', 'O1', 'O2'],
+                        help='mixed precision opt level, if O0, no amp is used')
+    parser.add_argument('--tag', help='tag of experiment')
+    parser.add_argument('--eval', action='store_true',
+                        help='Perform evaluation only')
+    parser.add_argument('--throughput', action='store_true',
+                        help='Test throughput only')
+    parser.add_argument('--batch_size', type=int, default=16,
+                    help='batch_size per gpu')
+    args = parser.parse_args()
+    
+    config = config_copy.get_config(args)
+    model = SwinUnet(config, img_size=480,
+                    num_classes=2)
+    model.load_from(config)

@@ -32,8 +32,8 @@
 
 ### with AE, TilingOnly, semi-supervised ####
 python train_CT_between_cnn_transformer_2D_withAE.py \
---root_path '../../dataset/Dermatomyositis' \
---exp 'Dermatomyositis_percentage_withAE/CT_Between_CNN_Transformer_TilingOnly' \
+--root_path '../../dataset/Dermofit' \
+--exp 'Dermofit_percentage_withAE/CT_Between_CNN_Transformer_InterpolateOnly' \
 --labeled_num 10p \
 --batch_size 16 \
 --labeled_bs 8
