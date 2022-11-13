@@ -4,7 +4,6 @@ The original [code](https://github.com/pranavsinghps1/DEDL) comes from the [pape
 1. Seg_APP.py is the main file
 
 2. Seg_APP.SBATCH is the file running the HPC 
-* please change the encoder_name, e.g. resnet18
 * please change the mail-user in line 10
 * please change the environment in line 16
 
