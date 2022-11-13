@@ -38,7 +38,7 @@ from tqdm import tqdm
 from config import get_config
 from dataloaders import utils
 from dataloaders.dataset import TwoStreamBatchSampler #BaseDataSets, RandomGenerator,
-from dataloaders.dermofit_processing import build_dataloader_ssl
+from dataloaders.dermofit_processing import build_dataset_ssl
 from networks.net_factory import net_factory
 from networks.vision_transformer import SwinUnet as ViT_seg
 from utils import losses, metrics, ramps
@@ -195,7 +195,7 @@ def train(args, snapshot_path):
 
     def create_model(ema=False):
         # Network definition
-        model = net_factory(args, config, net_type=args.model, in_chns=3 if args.dataclass ==1 else 1, 
+        model = net_factory(args, config, net_type=args.model, in_chns=3 if args.data_class ==1 else 1, 
                             class_num=num_classes)
         if ema:
             for param in model.parameters():
@@ -215,7 +215,7 @@ def train(args, snapshot_path):
     #     RandomGenerator(args.patch_size)
     # ]))
     # db_val = BaseDataSets(base_dir=args.root_path, split="val")
-    db_train, db_val, db_test,  _, _, _ = build_dataloader_ssl(DATA_PATH, TILE_IMAGE_PATH, TILE_LABEL_PATH, args.data_class)
+    db_train, db_val, db_test,  _, _, _ = build_dataset_ssl(DATA_PATH, TILE_IMAGE_PATH, TILE_LABEL_PATH, args.data_class)
 
     total_slices = len(db_train)
     labeled_slice = patients_to_slices(args.root_path, args.labeled_num, len(db_train), UsePercentage_flag=True)
@@ -245,8 +245,9 @@ def train(args, snapshot_path):
     scheduler1 = lr_scheduler.CosineAnnealingLR(optimizer1, T_max=5, eta_min=5e-6,last_epoch=-1)
     scheduler2 = lr_scheduler.CosineAnnealingLR(optimizer2, T_max=5, eta_min=5e-6,last_epoch=-1)
 
-
-    ce_loss = CrossEntropyLoss()
+    ce_weights = losses.reverse_weight(losses.calculate_weights(TILE_LABEL_PATH))
+    print(f"CE Weights are {ce_weights}")
+    ce_loss = CrossEntropyLoss(reduction='mean', weight=torch.tensor(ce_weights).type(torch.cuda.FloatTensor))
     dice_loss = losses.DiceLoss(num_classes)
 
     writer = SummaryWriter(snapshot_path + '/log')
@@ -270,8 +271,7 @@ def train(args, snapshot_path):
             outputs_soft2 = torch.softmax(outputs2, dim=1)
             consistency_weight = get_current_consistency_weight(
                 iter_num // 150)
-            # print(outputs1.shape, label_batch.shape, args.labeled_bs)
-            loss1 = 0.5 * (ce_loss(outputs1[:args.labeled_bs], label_batch[:args.labeled_bs].long()) + dice_loss(
+            loss1 = 0.5 * (ce_loss(outputs1[:args.labeled_bs], label_batch[:args.labeled_bs].long())+ dice_loss(
                 outputs_soft1[:args.labeled_bs], label_batch[:args.labeled_bs].unsqueeze(1)))
             loss2 = 0.5 * (ce_loss(outputs2[:args.labeled_bs], label_batch[:args.labeled_bs].long()) + dice_loss(
                 outputs_soft2[:args.labeled_bs], label_batch[:args.labeled_bs].unsqueeze(1)))

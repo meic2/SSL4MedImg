@@ -12,3 +12,6 @@ code/train.sbatch
 .ipynb_checkpoints/
 **/.ipynb_checkpoints/
 *.ipynb
+code/**.sbatch
+hpc_sbatch/**.sbatch
+*.sbatch

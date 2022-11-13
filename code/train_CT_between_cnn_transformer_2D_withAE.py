@@ -196,7 +196,7 @@ def train(args, snapshot_path):
 
     def create_model(ema=False):
         # Network definition
-        model = net_factory(args, config, net_type=args.model, in_chns=3 if args.dataclass ==1  else 1, 
+        model = net_factory(args, config, net_type=args.model, in_chns=3 if args.data_class ==1  else 1, 
                             class_num=num_classes)
         if ema:
             for param in model.parameters():
@@ -250,9 +250,13 @@ def train(args, snapshot_path):
     scheduler1 = lr_scheduler.CosineAnnealingLR(optimizer1, T_max=5, eta_min=5e-6,last_epoch=-1)
     scheduler2 = lr_scheduler.CosineAnnealingLR(optimizer2, T_max=5, eta_min=5e-6,last_epoch=-1)
 
-    ce_loss = CrossEntropyLoss()
+    ce_weights = losses.reverse_weight(losses.calculate_weights(TILE_LABEL_PATH))
+    ce_weights=torch.tensor(ce_weights).type(torch.cuda.FloatTensor)
+    print(f"CE Weights are {ce_weights}")
+    ce_loss = CrossEntropyLoss(reduction='mean', weight=ce_weights)
+    
     dice_loss = losses.DiceLoss(num_classes)
-    criterion_AE = CrossEntropyLoss()
+    criterion_AE = CrossEntropyLoss(weight=ce_weights)
     writer = SummaryWriter(snapshot_path + '/log')
     logging.info("{} iterations per epoch".format(len(trainloader)))
 
