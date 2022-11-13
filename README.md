@@ -1,4 +1,6 @@
 # Data-Efficient Deep Learning model for Dermatomyositis and Dermfit
+[Jupyter notebook version](https://github.com/LuoyaoChen/DEDL_Semisupervised)
+
 Reproduce the segmentation result from ["A Data-Efficient Deep Learning Framework for Segmentation and Classification of Histopathology Images"](https://github.com/pranavsinghps1/DEDL) with application to new dataset Dermofit. 
 
 ## Dataset description
