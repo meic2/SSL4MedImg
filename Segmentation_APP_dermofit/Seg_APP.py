@@ -40,8 +40,8 @@ os.environ['CUDA_LAUNCH_BLOCKING']='1'
 CONSTANTS
 '''
 data_path = '../../dataset/Dermofit/original_data/'
-tile_image_path = '../../dataset/Dermofit_resize_noTiling/resize_image/'
-tile_label_path = '../../dataset/Dermofit_resize_noTiling/resize_label/'
+tile_image_path = '../../dataset/Dermofit/interpolated_image/'
+tile_label_path = '../../dataset/Dermofit/interpolated_label/'
 save_metric_path = './metric_save'
 save_model_directory='../../DEDL_Saved_model/'
 
