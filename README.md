@@ -78,7 +78,6 @@ root(netid file) -
 ### Segmentation_APP_dermofit
 - the code for Dermofit dataset
 - python file could be run by HPC command line (dataloader, Seg_APP and test_model)
-- Jupyter notebook for visulize dataset
 
 ### Segmentation_APP
 - the code for Dermatomyositis dataset
