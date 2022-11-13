@@ -173,7 +173,6 @@ def train_model(dataloader,
             # print('loss1.dtype:', loss1.dtype)
             # loss1.dtype: torch.float32
             if ae_flag:
-                ######### Change here!! ################
                 one_hot_label = F.one_hot(mask.to(torch.int64), num_classes=2)
                 # print('one_hot_label', one_hot_label.shape) 
                 # one_hot_label torch.Size([16, 480, 480, 2])
@@ -184,7 +183,6 @@ def train_model(dataloader,
                 loss2 = criterion_ae(outputs_ae, one_hot_label.permute(0,3,1,2).float())
                 # print('loss2.dtype:', loss2.dtype)
                 # loss2.dtype: torch.float32
-                #########################################
 
                 loss = loss1 + loss2
             else:
@@ -321,22 +319,6 @@ def train_model(dataloader,
     return train_acc, train_acc_mask, train_acc_bg, train_iou, val_acc, val_acc_mask, val_acc_bg, val_iou, train_confusion_matrix, val_confusion_matrix, file_name, train_val_time
 
 if __name__ == "__main__":
-    '''
-    encoder_name:
-        timm-efficientnet-b0
-        ...
-        timm-efficientnet-b8
-
-        resnet18
-        resnet50
-        resnext50_32x4d
-        resnext101_32x4d
-        resnext101_32x8d
-        resnext101_32x16d
-        resnext101_32x32d
-        resnext101_32x48d
-    '''
-
     torch.manual_seed(args.seed)
     print("current seed is "+ str(args.seed))
 
@@ -359,6 +341,7 @@ if __name__ == "__main__":
     print("Use GELU: " + str(args.gelu))
     print("Use Unet: " + str(args.unet))
     print("Use AE: " + str(args.ae))
+
     if args.ae:    
         if args.gelu:
             if args.unet:
@@ -386,11 +369,6 @@ if __name__ == "__main__":
             in_channels=3, classes=2, encoder_depth=3, decoder_channels=(256, 128, 64))
 
     model = model.to(device)
-    # Weight from Dermatomyositis
-    # criterion = nn.CrossEntropyLoss(reduction='sum', weight=torch.tensor([0.1479139275021023,0.8520860724978977])).to(device)
-    # Weight is calculated by the same way as Dermatomyositis
-    # criterion = nn.CrossEntropyLoss(reduction='sum', weight=torch.tensor([0.6963422876602564, 0.3036577123397436])).to(device)
-    # Weight is calculated by Median Frequency Balancing
     criterion = nn.CrossEntropyLoss(reduction='sum', weight=torch.tensor([0.7180376788665532, 1.6465908143176757])).to(device)
     optimizer = optim.Adam(model.parameters(), lr=3.6e-04, weight_decay=1e-05)
     if args.gelu:
