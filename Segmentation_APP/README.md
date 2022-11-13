@@ -8,13 +8,4 @@ The original [code](https://github.com/pranavsinghps1/DEDL) comes from the [pape
 * please change the mail-user in line 10
 * please change the environment in line 16
 
-3. Seg_APP.out is the output of Seg_APP.py
-
-4. test_model.py could test the existent model
-
-5. test_model.SBATCH is the file running the HPC 
-* please change the model_name, e.g. Unet_resnet18_20221001_02.pt
-* please change the mail-user in line 10
-* please change the environment in line 16
-
-6. test_model.out is the output of test_model.py
+3. test_model.py could test the existent model
