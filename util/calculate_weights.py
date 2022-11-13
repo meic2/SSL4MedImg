@@ -1,4 +1,6 @@
 # Author: Yahui Liu <yahui.liu@unitn.it>
+# the original code: https://github.com/yhlleo/DeepSegmentor/blob/master/tools/calculate_weights.py
+# Median Frequency Balancing: https://arxiv.org/pdf/1411.4734.pdf
 
 import os
 import glob
@@ -49,9 +51,11 @@ def reverse_weight(w):
     return w
 
 if __name__ == '__main__':
+    # for Dermatomyositis
     label_path = '../../dataset/Dermatomyositis/tile_label/'
+    # for Dermofit
+    # label_path = '../../dataset/Dermofit/tile_label/'
+    
     weights = calculate_weights(label_path)
     print(weights)
-    # {0.0: 0.8352470496423184, 1.0: 0.16475295035768162}
     print(reverse_weight(weights))
-    # {0.0: 0.5986252811719056, 1.0: 3.0348470155527187}

@@ -68,7 +68,7 @@ root(netid file) -
 ```
 
 ### Image_preprocessing
-- The first step of the code has two ways to preprocessing the input image
+- The first step of the code has two ways to preprocess the input image
     - interpolate image
     - tile image
 - Python file version that can be used for command line.
