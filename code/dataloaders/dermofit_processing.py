@@ -10,7 +10,7 @@ from scipy import ndimage
 import logging
 
 class RandomGenerator(object):
-    def __init__(self, isRnorm, output_size = 224):
+    def __init__(self, isRnorm, output_size = [224, 224]):
         self.ToPILImage = transforms.ToPILImage()
         self.ToTensor = transforms.ToTensor()
         self.isRnorm = isRnorm

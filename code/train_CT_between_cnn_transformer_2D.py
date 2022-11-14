@@ -122,8 +122,8 @@ if args.data_class == 2:
 
 elif args.data_class == 3:
     DATA_PATH = '../../dataset/Dermatomyositis/original_data/'
-    TILE_IMAGE_PATH = '../../dataset/Dermatomyositis/InterpolateOnly_image/'
-    TILE_LABEL_PATH = '../../dataset/Dermatomyositis/InterpolateOnly_label/'
+    TILE_IMAGE_PATH = '../../dataset/Dermatomyositis/interpolateOnly_image/'
+    TILE_LABEL_PATH = '../../dataset/Dermatomyositis/interpolateOnly_label/'
 
 
 print(torch.cuda.is_available())
@@ -245,10 +245,10 @@ def train(args, snapshot_path):
     scheduler1 = lr_scheduler.CosineAnnealingLR(optimizer1, T_max=50, eta_min=5e-6,last_epoch=-1)
     scheduler2 = lr_scheduler.CosineAnnealingLR(optimizer2, T_max=50, eta_min=5e-6,last_epoch=-1)
 
-    # ce_weights = losses.reverse_weight(losses.calculate_weights(TILE_LABEL_PATH))
-    # print(f"CE Weights are {ce_weights}")
-    # ce_loss = CrossEntropyLoss(reduction='mean', weight=torch.tensor(ce_weights).type(torch.cuda.FloatTensor))
-    ce_loss = CrossEntropyLoss()
+    ce_weights = losses.reverse_weight(losses.calculate_weights(TILE_LABEL_PATH))
+    print(f"CE Weights are {ce_weights}")
+    ce_loss = CrossEntropyLoss(reduction='mean', weight=torch.tensor(ce_weights).type(torch.cuda.FloatTensor))
+
     dice_loss = losses.DiceLoss(num_classes)
 
     writer = SummaryWriter(snapshot_path + '/log')
@@ -263,7 +263,7 @@ def train(args, snapshot_path):
         for i_batch, sampled_batch in enumerate(trainloader):
             volume_batch, label_batch = sampled_batch['image'], sampled_batch['label']
             volume_batch, label_batch = volume_batch.cuda(), label_batch.cuda()
-            print(volume_batch.shape)
+
             #change dimension
             label_batch = label_batch.squeeze(1)
             outputs1 = model1(volume_batch)
@@ -335,7 +335,7 @@ def train(args, snapshot_path):
                 labs = label_batch[1, ...].unsqueeze(0) * 50
                 writer.add_image('train/GroundTruth', labs, iter_num)
 
-            if iter_num > 0 and iter_num % 20 == 0: #default to be 200
+            if iter_num > 0 and iter_num % 200 == 0: #default to be 200
                 model1.eval()
                 metric_list = 0.0
 
