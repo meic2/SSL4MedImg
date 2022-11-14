@@ -3,7 +3,6 @@ import torch
 from torchvision import transforms
 from torch.utils.data import Dataset
 from scipy.ndimage.interpolation import zoom
-
 import os
 import itertools
 import random
@@ -11,7 +10,7 @@ from scipy import ndimage
 import logging
 
 class RandomGenerator(object):
-    def __init__(self, isRnorm, output_size = [224,224]):
+    def __init__(self, isRnorm, output_size = [224, 224]):
         self.ToPILImage = transforms.ToPILImage()
         self.ToTensor = transforms.ToTensor()
         self.isRnorm = isRnorm
@@ -28,7 +27,6 @@ class RandomGenerator(object):
     def __call__(self, sample):
         image, label = sample["image"], sample["label"]
         print("image: ", image)
-        exit()
         image = self.ToPILImage(image)
         label = self.ToPILImage(label)
         ''' random augmentation '''
@@ -53,13 +51,11 @@ class RandomGenerator(object):
         if self.isRnorm:
             image = self.Rnorm(image)
 
+        image, label = self.resize(image, label)
+
         sample = {"image": image, "label": label}
         return sample
     
-    def resize(self, image):
-        # print(image.shape)
-        _, x, y = image.shape
-        return zoom(image, (1, self.output_size[0] / x, self.output_size[1] / y), order=0)
 
     def random_rot_flip(self, image, label=None):
         k = np.random.randint(0, 4) # number of times to be rotated
@@ -77,6 +73,13 @@ class RandomGenerator(object):
         angle = np.random.randint(-20, 20)
         image = ndimage.rotate(image, angle, order=0, reshape=False)
         label = ndimage.rotate(label, angle, order=0, reshape=False)
+        return image, label
+    
+    def resize(self, image, label):
+        _, x, y = image.shape
+        zoom_factor = 1, self.output_size[0]/ x, self.output_size[1]/ y
+        image = zoom(image, zoom_factor, order=0)
+        label = zoom(label, zoom_factor,  order=0)
         return image, label
 
 
@@ -197,13 +200,13 @@ def build_dataset(data_path, tile_image_path, tile_label_path,
             test_list
             
 
-def build_dataset_ssl(data_path, tile_image_path, tile_label_path, dataclass):
+def build_dataset_ssl(data_path, tile_image_path, tile_label_path, dataclass, output_size):
     '''
     @variable:
         dataclass (int): Dermofit=1, tiled Dermatomyositis=2, interpolated Dermatomyositis=3
     '''
     transform_train = transforms.Compose([
-        RandomGenerator(dataclass==1),
+        RandomGenerator(dataclass==1, output_size=output_size),
         ])
 
     transform_val=transforms.Compose([transforms.ToPILImage(),transforms.ToTensor()])
