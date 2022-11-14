@@ -2,6 +2,8 @@ import numpy as np
 import torch
 from torchvision import transforms
 from torch.utils.data import Dataset
+from scipy.ndimage.interpolation import zoom
+
 import os
 import itertools
 import random
@@ -9,10 +11,11 @@ from scipy import ndimage
 import logging
 
 class RandomGenerator(object):
-    def __init__(self, isRnorm):
+    def __init__(self, isRnorm, output_size = [224,224]):
         self.ToPILImage = transforms.ToPILImage()
         self.ToTensor = transforms.ToTensor()
         self.isRnorm = isRnorm
+        self.output_size=output_size
         
         DATASET_IMAGE_MEAN = (0.485,0.456, 0.406)
         DATASET_IMAGE_STD = (0.229,0.224, 0.225)
@@ -24,6 +27,8 @@ class RandomGenerator(object):
         
     def __call__(self, sample):
         image, label = sample["image"], sample["label"]
+        print("image: ", image)
+        exit()
         image = self.ToPILImage(image)
         label = self.ToPILImage(label)
         ''' random augmentation '''
@@ -31,16 +36,30 @@ class RandomGenerator(object):
             image, label = self.random_rot_flip(image, label)
         elif random.random() > 0.5:
             image, label = self.random_rotate(image, label)
+        
+        # image = torch.from_numpy(image.astype(np.float32)).unsqueeze(0)
+        # label = torch.from_numpy(label.astype(np.uint8))
+        print(f"np.array(image): {np.array(image)}")
+        print(f"np.max(np.array(image)) = {np.max(np.array(image))}, np.min(np.array(image)) = {np.min(np.array(image))}")
         ''' toTensor()'''
-        image = self.ToTensor(image)        
+        image = self.ToTensor(image)  
+        label = self.ToTensor(label)
+
+        '''resize'''
+        image = self.resize(image)
+        label = self.resize(label)  
+          
         ''' Rnorm '''
         if self.isRnorm:
             image = self.Rnorm(image)
-        
-        label = self.ToTensor(label)
 
         sample = {"image": image, "label": label}
         return sample
+    
+    def resize(self, image):
+        # print(image.shape)
+        _, x, y = image.shape
+        return zoom(image, (1, self.output_size[0] / x, self.output_size[1] / y), order=0)
 
     def random_rot_flip(self, image, label=None):
         k = np.random.randint(0, 4) # number of times to be rotated
@@ -202,7 +221,7 @@ if __name__ == '__main__':
  TILE_IMAGE_PATH = '../../dataset/Dermatomyositis/tile_image/'
  TILE_LABEL_PATH = '../../dataset/Dermatomyositis/tile_label/'
  
- train_loader, validation_laoder, test_loader = build_dataset(DATA_PATH, TILE_IMAGE_PATH, TILE_LABEL_PATH, 
-                                                           transform_train = None, transform_val = None, transform_test = None,
-                                                           isDermorfit = 'Dermofit' in DATA_PATH)
+ db_train, db_val, db_test,  _, _, _ = build_dataset_ssl(DATA_PATH, TILE_IMAGE_PATH, TILE_LABEL_PATH, dataclass = 2)
+ print(f"db_train[0]['image'].shape: {db_train[0]['image'].shape}")
+
  

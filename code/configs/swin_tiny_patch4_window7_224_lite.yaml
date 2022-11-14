@@ -9,4 +9,4 @@ MODEL:
     DEPTHS: [ 2, 2, 2, 2 ]
     DECODER_DEPTHS: [ 2, 2, 2, 1]
     NUM_HEADS: [ 3, 6, 12, 24 ]
-    WINDOW_SIZE: 5
+    WINDOW_SIZE: 7

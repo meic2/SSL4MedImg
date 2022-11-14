@@ -62,7 +62,7 @@ parser.add_argument('--deterministic', type=int,  default=1,
                     help='whether use deterministic training')
 parser.add_argument('--base_lr', type=float,  default=0.01,
                     help='segmentation network learning rate')
-parser.add_argument('--patch_size', type=list,  default=[480, 480],
+parser.add_argument('--patch_size', type=list,  default=[224, 224],
                     help='patch size of network input')
 parser.add_argument('--seed', type=int,  default=1234, help='random seed')
 parser.add_argument('--num_classes', type=int,  default=2,
@@ -262,6 +262,13 @@ def train(args, snapshot_path):
         for i_batch, sampled_batch in enumerate(trainloader):
             volume_batch, label_batch = sampled_batch['image'], sampled_batch['label']
             volume_batch, label_batch = volume_batch.cuda(), label_batch.cuda()
+            print("set(volume_batch[0]): ", set(volume_batch[0]))
+            print(f"volume_batch.shape: {volume_batch.shape}, label_batch.shape: {label_batch.shape}")
+            print("max(volume_batch[0]): ", torch.max(volume_batch[0]), "min(volume_batch[0])", torch.min(volume_batch[0]))
+            print("set(label_batch[0]): ", set(label_batch[0]))
+            print("max(label_batch[0]): ", torch.max(label_batch[0]), "min(label_batch[0])", torch.min(label_batch[0]))
+
+            exit()
             #change dimension
             label_batch = label_batch.squeeze(1)
             outputs1 = model1(volume_batch)
@@ -470,8 +477,8 @@ if __name__ == "__main__":
         os.makedirs(snapshot_path)
     if os.path.exists(snapshot_path + '/code'):
         shutil.rmtree(snapshot_path + '/code')
-    shutil.copytree('.', snapshot_path + '/code',
-                    shutil.ignore_patterns(['.git', '__pycache__']))
+    # shutil.copytree('.', snapshot_path + '/code',
+    #                 shutil.ignore_patterns(['.git', '__pycache__', '.out']))
 
     logging.basicConfig(filename=snapshot_path+"/log.txt", level=logging.INFO,
                         format='[%(asctime)s.%(msecs)03d] %(message)s', datefmt='%H:%M:%S')

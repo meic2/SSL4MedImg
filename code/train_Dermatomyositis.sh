@@ -15,10 +15,11 @@
 # --labeled_bs 16
 
 ## semi-supervised ####
-python train_cross_teaching_between_cnn_transformer_2D.py \
+python train_CT_between_cnn_transformer_2D.py \
 --root_path '../../dataset/Dermatomyositis' \
 --exp 'Dermatomyositis/CT_CNN_Transformer' \
---labeled_num 10p \
+--labeled_num 50p \
+--data_class 2 \
 --batch_size 16 \
 --labeled_bs 8
 
@@ -31,12 +32,12 @@ python train_cross_teaching_between_cnn_transformer_2D.py \
 # --labeled_bs 8
 
 ### with AE, TilingOnly, semi-supervised ####
-python train_CT_between_cnn_transformer_2D_withAE.py \
---root_path '../../dataset/Dermofit' \
---exp 'Dermofit_percentage_withAE/CT_Between_CNN_Transformer_InterpolateOnly' \
---labeled_num 10p \
---batch_size 16 \
---labeled_bs 8
+# python train_CT_between_cnn_transformer_2D_withAE.py \
+# --root_path '../../dataset/Dermofit' \
+# --exp 'Dermofit_percentage_withAE/CT_Between_CNN_Transformer_InterpolateOnly' \
+# --labeled_num 10p \
+# --batch_size 16 \
+# --labeled_bs 8
 
 
 

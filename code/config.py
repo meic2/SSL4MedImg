@@ -25,7 +25,7 @@ _C.DATA.DATA_PATH = ''
 # Dataset name
 _C.DATA.DATASET = 'imagenet'
 # Input image size
-_C.DATA.IMG_SIZE = 480
+_C.DATA.IMG_SIZE = 224
 # Interpolation to resize image (random, bilinear, bicubic)
 _C.DATA.INTERPOLATION = 'bicubic'
 # Use zipped dataset instead of folder dataset
@@ -50,7 +50,7 @@ _C.MODEL.NAME = 'swin_tiny_patch4_window7_224'
 _C.MODEL.PRETRAIN_CKPT = './pretrained_ckpt/swin_tiny_patch4_window7_224.pth'
 _C.MODEL.RESUME = ''
 # Number of classes, overwritten in data preparation
-_C.MODEL.NUM_CLASSES = 1000
+_C.MODEL.NUM_CLASSES = 2
 # Dropout rate
 _C.MODEL.DROP_RATE = 0.0
 # Drop path rate
