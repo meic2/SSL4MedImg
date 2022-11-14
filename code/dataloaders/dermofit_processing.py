@@ -64,17 +64,10 @@ class RandomGenerator(object):
         label = ndimage.rotate(label, angle, order=0, reshape=False)
         return image, label
     def resize(self, image, label):
-        if self.isRnorm:
-            _, x, y = image.shape
-            zoom_factor = 1, self.output_size[0] / x, self.output_size[1] / y
-            image = zoom(image, zoom_factor, order=0)
-            label = zoom(label, zoom_factor,  order=0)
-        else: #2 dimension dermatomyositis
-            x, y = image.shape
-            zoom_factor = self.output_size[0] / x, self.output_size[1] / y
-            image = zoom(image, zoom_factor, order=0)
-            label = zoom(label, zoom_factor,  order=0)
-
+        _, x, y = image.shape
+        zoom_factor = 1, self.output_size[0] / x, self.output_size[1] / y
+        image = zoom(image, zoom_factor, order=0)
+        label = zoom(label, zoom_factor,  order=0)
         return image, label
 
 
