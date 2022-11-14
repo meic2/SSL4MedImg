@@ -2,6 +2,7 @@ import numpy as np
 import torch
 from torchvision import transforms
 from torch.utils.data import Dataset
+from scipy.ndimage.interpolation import zoom
 import os
 import itertools
 import random
@@ -9,10 +10,11 @@ from scipy import ndimage
 import logging
 
 class RandomGenerator(object):
-    def __init__(self, isRnorm):
+    def __init__(self, isRnorm, output_size = 224):
         self.ToPILImage = transforms.ToPILImage()
         self.ToTensor = transforms.ToTensor()
         self.isRnorm = isRnorm
+        self.output_size=output_size
         
         DATASET_IMAGE_MEAN = (0.485,0.456, 0.406)
         DATASET_IMAGE_STD = (0.229,0.224, 0.225)
@@ -39,6 +41,8 @@ class RandomGenerator(object):
         
         label = self.ToTensor(label)
 
+        image, label = self.resize(image, label)
+
         sample = {"image": image, "label": label}
         return sample
 
@@ -58,6 +62,19 @@ class RandomGenerator(object):
         angle = np.random.randint(-20, 20)
         image = ndimage.rotate(image, angle, order=0, reshape=False)
         label = ndimage.rotate(label, angle, order=0, reshape=False)
+        return image, label
+    def resize(self, image, label):
+        if self.isRnorm:
+            _, x, y = image.shape
+            zoom_factor = 1, self.output_size[0] / x, self.output_size[1] / y
+            image = zoom(image, zoom_factor, order=0)
+            label = zoom(label, zoom_factor,  order=0)
+        else: #2 dimension dermatomyositis
+            x, y = image.shape
+            zoom_factor = self.output_size[0] / x, self.output_size[1] / y
+            image = zoom(image, zoom_factor, order=0)
+            label = zoom(label, zoom_factor,  order=0)
+
         return image, label
 
 
@@ -178,13 +195,13 @@ def build_dataset(data_path, tile_image_path, tile_label_path,
             test_list
             
 
-def build_dataset_ssl(data_path, tile_image_path, tile_label_path, dataclass):
+def build_dataset_ssl(data_path, tile_image_path, tile_label_path, dataclass, output_size):
     '''
     @variable:
         dataclass (int): Dermofit=1, tiled Dermatomyositis=2, interpolated Dermatomyositis=3
     '''
     transform_train = transforms.Compose([
-        RandomGenerator(dataclass==1),
+        RandomGenerator(dataclass==1, output_size=output_size),
         ])
 
     transform_val=transforms.Compose([transforms.ToPILImage(),transforms.ToTensor()])

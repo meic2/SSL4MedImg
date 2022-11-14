@@ -62,7 +62,7 @@ parser.add_argument('--deterministic', type=int,  default=1,
                     help='whether use deterministic training')
 parser.add_argument('--base_lr', type=float,  default=0.01,
                     help='segmentation network learning rate')
-parser.add_argument('--patch_size', type=list,  default=[480, 480],
+parser.add_argument('--patch_size', type=list,  default=[224, 224],
                     help='patch size of network input')
 parser.add_argument('--seed', type=int,  default=1234, help='random seed')
 parser.add_argument('--num_classes', type=int,  default=2,
@@ -215,7 +215,7 @@ def train(args, snapshot_path):
     #     RandomGenerator(args.patch_size)
     # ]))
     # db_val = BaseDataSets(base_dir=args.root_path, split="val")
-    db_train, db_val, db_test,  _, _, _ = build_dataset_ssl(DATA_PATH, TILE_IMAGE_PATH, TILE_LABEL_PATH, args.data_class)
+    db_train, db_val, db_test,  _, _, _ = build_dataset_ssl(DATA_PATH, TILE_IMAGE_PATH, TILE_LABEL_PATH, args.data_class, args.patch_size)
 
     total_slices = len(db_train)
     labeled_slice = patients_to_slices(args.root_path, args.labeled_num, len(db_train), UsePercentage_flag=True)
@@ -242,12 +242,13 @@ def train(args, snapshot_path):
     optimizer1 = optim.Adam(model1.parameters(), lr=3.6e-04, weight_decay=1e-05)
     optimizer2 = optim.Adam(model2.parameters(), lr=3.6e-04, weight_decay=1e-05)
 
-    scheduler1 = lr_scheduler.CosineAnnealingLR(optimizer1, T_max=5, eta_min=5e-6,last_epoch=-1)
-    scheduler2 = lr_scheduler.CosineAnnealingLR(optimizer2, T_max=5, eta_min=5e-6,last_epoch=-1)
+    scheduler1 = lr_scheduler.CosineAnnealingLR(optimizer1, T_max=50, eta_min=5e-6,last_epoch=-1)
+    scheduler2 = lr_scheduler.CosineAnnealingLR(optimizer2, T_max=50, eta_min=5e-6,last_epoch=-1)
 
-    ce_weights = losses.reverse_weight(losses.calculate_weights(TILE_LABEL_PATH))
-    print(f"CE Weights are {ce_weights}")
-    ce_loss = CrossEntropyLoss(reduction='mean', weight=torch.tensor(ce_weights).type(torch.cuda.FloatTensor))
+    # ce_weights = losses.reverse_weight(losses.calculate_weights(TILE_LABEL_PATH))
+    # print(f"CE Weights are {ce_weights}")
+    # ce_loss = CrossEntropyLoss(reduction='mean', weight=torch.tensor(ce_weights).type(torch.cuda.FloatTensor))
+    ce_loss = CrossEntropyLoss()
     dice_loss = losses.DiceLoss(num_classes)
 
     writer = SummaryWriter(snapshot_path + '/log')
@@ -262,6 +263,7 @@ def train(args, snapshot_path):
         for i_batch, sampled_batch in enumerate(trainloader):
             volume_batch, label_batch = sampled_batch['image'], sampled_batch['label']
             volume_batch, label_batch = volume_batch.cuda(), label_batch.cuda()
+            print(volume_batch.shape)
             #change dimension
             label_batch = label_batch.squeeze(1)
             outputs1 = model1(volume_batch)
@@ -295,6 +297,9 @@ def train(args, snapshot_path):
             optimizer2.zero_grad()
 
             loss.backward()
+
+            optimizer1.step()
+            optimizer2.step()
 
             scheduler1.step()
             scheduler2.step()
@@ -330,7 +335,7 @@ def train(args, snapshot_path):
                 labs = label_batch[1, ...].unsqueeze(0) * 50
                 writer.add_image('train/GroundTruth', labs, iter_num)
 
-            if iter_num > 0 and iter_num % 200 == 0: #default to be 200
+            if iter_num > 0 and iter_num % 20 == 0: #default to be 200
                 model1.eval()
                 metric_list = 0.0
 

@@ -72,9 +72,10 @@ class SwinUnet(nn.Module):
                 print(msg)
                 return
             pretrained_dict = pretrained_dict['model']
+            print(pretrained_dict.keys())
             print("---start load pretrained modle of swin encoder---")
-
             model_dict = self.swin_unet.state_dict()
+            print(model_dict.keys())
             full_dict = copy.deepcopy(pretrained_dict)
             for k, v in pretrained_dict.items():
                 if "layers." in k:
