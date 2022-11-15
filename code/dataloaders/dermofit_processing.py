@@ -9,12 +9,32 @@ import random
 from scipy import ndimage
 import logging
 
+
+class Resize(object):
+    def __init__(self, output_size = [224,224]):
+        self.output_size = output_size
+    
+    def __call__(self, image):
+        """
+        :param image: tensor image or label
+        :return: zoomed image to size output_size
+        """
+        _, x, y = image.shape
+        zoom_factor = 1, self.output_size[0]/ x, self.output_size[1]/ y
+        image = zoom(image, zoom_factor, order=0)
+
+        return torch.tensor(image)
+
+    def __repr__(self):
+        return self.__class__.__name__+'()'
+
 class RandomGenerator(object):
     def __init__(self, isRnorm, output_size = [224, 224]):
         self.ToPILImage = transforms.ToPILImage()
         self.ToTensor = transforms.ToTensor()
         self.isRnorm = isRnorm
         self.output_size=output_size
+        self.Resize=Resize(output_size)
         
         DATASET_IMAGE_MEAN = (0.485,0.456, 0.406)
         DATASET_IMAGE_STD = (0.229,0.224, 0.225)
@@ -26,7 +46,6 @@ class RandomGenerator(object):
         
     def __call__(self, sample):
         image, label = sample["image"], sample["label"]
-        print("image: ", image)
         image = self.ToPILImage(image)
         label = self.ToPILImage(label)
         ''' random augmentation '''
@@ -37,21 +56,19 @@ class RandomGenerator(object):
         
         # image = torch.from_numpy(image.astype(np.float32)).unsqueeze(0)
         # label = torch.from_numpy(label.astype(np.uint8))
-        print(f"np.array(image): {np.array(image)}")
-        print(f"np.max(np.array(image)) = {np.max(np.array(image))}, np.min(np.array(image)) = {np.min(np.array(image))}")
+    
         ''' toTensor()'''
         image = self.ToTensor(image)  
         label = self.ToTensor(label)
 
-        '''resize'''
-        image = self.resize(image)
-        label = self.resize(label)  
+        # image, label = self.resize(image, label) 
+        image = self.Resize(image)
+        label = self.Resize(label)       
           
         ''' Rnorm '''
         if self.isRnorm:
             image = self.Rnorm(image)
 
-        image, label = self.resize(image, label)
 
         sample = {"image": image, "label": label}
         return sample
@@ -75,12 +92,12 @@ class RandomGenerator(object):
         label = ndimage.rotate(label, angle, order=0, reshape=False)
         return image, label
     
-    def resize(self, image, label):
-        _, x, y = image.shape
-        zoom_factor = 1, self.output_size[0]/ x, self.output_size[1]/ y
-        image = zoom(image, zoom_factor, order=0)
-        label = zoom(label, zoom_factor,  order=0)
-        return image, label
+    # def resize(self, image, label):
+    #     _, x, y = image.shape
+    #     zoom_factor = 1, self.output_size[0]/ x, self.output_size[1]/ y
+    #     image = zoom(image, zoom_factor, order=0)
+    #     label = zoom(label, zoom_factor,  order=0)
+    #     return image, label
 
 
 class CustomDataset(Dataset):
@@ -209,8 +226,8 @@ def build_dataset_ssl(data_path, tile_image_path, tile_label_path, dataclass, ou
         RandomGenerator(dataclass==1, output_size=output_size),
         ])
 
-    transform_val=transforms.Compose([transforms.ToPILImage(),transforms.ToTensor()])
-    transform_test=transforms.Compose([transforms.ToPILImage(),transforms.ToTensor()])
+    transform_val=transforms.Compose([transforms.ToPILImage(),transforms.ToTensor(), Resize()])
+    transform_test=transforms.Compose([transforms.ToPILImage(),transforms.ToTensor(),Resize()])
 
     return build_dataset(
         data_path, tile_image_path, tile_label_path, 

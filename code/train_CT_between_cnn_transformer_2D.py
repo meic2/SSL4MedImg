@@ -245,10 +245,10 @@ def train(args, snapshot_path):
     scheduler1 = lr_scheduler.CosineAnnealingLR(optimizer1, T_max=50, eta_min=5e-6,last_epoch=-1)
     scheduler2 = lr_scheduler.CosineAnnealingLR(optimizer2, T_max=50, eta_min=5e-6,last_epoch=-1)
 
-    # ce_weights = losses.reverse_weight(losses.calculate_weights(TILE_LABEL_PATH))
-    # print(f"CE Weights are {ce_weights}")
-    # ce_loss = CrossEntropyLoss(reduction='mean', weight=torch.tensor(ce_weights).type(torch.cuda.FloatTensor))
-    ce_loss = CrossEntropyLoss()
+    ce_weights = losses.reverse_weight(losses.calculate_weights(TILE_LABEL_PATH))
+    print(f"CE Weights are {ce_weights}")
+    ce_loss = CrossEntropyLoss(reduction='mean', weight=torch.tensor(ce_weights).type(torch.cuda.FloatTensor))
+    # ce_loss = CrossEntropyLoss()
     dice_loss = losses.DiceLoss(num_classes)
 
     writer = SummaryWriter(snapshot_path + '/log')
@@ -340,7 +340,7 @@ def train(args, snapshot_path):
                 labs = label_batch[1, ...].unsqueeze(0) * 50
                 writer.add_image('train/GroundTruth', labs, iter_num)
 
-            if iter_num > 0 and iter_num % 20 == 0: #default to be 200
+            if iter_num > 0 and iter_num % 200 == 0: #default to be 200
                 model1.eval()
                 metric_list = 0.0
 
@@ -480,8 +480,8 @@ if __name__ == "__main__":
         os.makedirs(snapshot_path)
     if os.path.exists(snapshot_path + '/code'):
         shutil.rmtree(snapshot_path + '/code')
-    # shutil.copytree('.', snapshot_path + '/code',
-    #                 shutil.ignore_patterns(['.git', '__pycache__', '.out']))
+    shutil.copytree('.', snapshot_path + '/code',
+                    shutil.ignore_patterns(['.git', '__pycache__', '.out']))
 
     logging.basicConfig(filename=snapshot_path+"/log.txt", level=logging.INFO,
                         format='[%(asctime)s.%(msecs)03d] %(message)s', datefmt='%H:%M:%S')

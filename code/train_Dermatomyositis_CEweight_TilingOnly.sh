@@ -15,13 +15,13 @@
 # --labeled_bs 16
 
 ## semi-supervised ####
-python train_CT_between_cnn_transformer_2D.py \
---root_path '../../dataset/Dermatomyositis' \
---exp 'Dermatomyositis/CT_CNN_Transformer' \
---labeled_num 50p \
---data_class 2 \
---batch_size 16 \
---labeled_bs 8
+# python train_CT_between_cnn_transformer_2D.py \
+#      --root_path '../../dataset/Dermatomyositis' \
+#      --exp 'Dermatomyositis_percentage_CEweight/CT_CNN_Transformer' \
+#      --labeled_num 10p \
+#      --data_class 2 \
+#      --batch_size 16 \
+#      --labeled_bs 8
 
 # ### with AE, InterpolateOnly, semi-supervised ####
 # python train_CT_between_cnn_transformer_2D_withAE.py \
@@ -41,3 +41,8 @@ python train_CT_between_cnn_transformer_2D.py \
 
 
 
+sbatch /scratch/lc4866/SSL4MedImg/code/train_Dermatomyositis_CEweight_TilingOnly_10p.sbatch
+sbatch /scratch/lc4866/SSL4MedImg/code/train_Dermatomyositis_CEweight_TilingOnly_30p.sbatch
+sbatch /scratch/lc4866/SSL4MedImg/code/train_Dermatomyositis_CEweight_TilingOnly_50p.sbatch
+sbatch /scratch/lc4866/SSL4MedImg/code/train_Dermatomyositis_CEweight_TilingOnly_70p.sbatch
+sbatch /scratch/lc4866/SSL4MedImg/code/train_Dermatomyositis_CEweight_TilingOnly_99p.sbatch

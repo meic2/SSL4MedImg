@@ -37,7 +37,7 @@ parser.add_argument('--num_classes', type=int,  default=2,
                     help='output channel of network')
 parser.add_argument('--labeled_num', type=str, default=7,
                     help='labeled data')
-parser.add_argument('--patch_size', type=list,  default=[480, 480],
+parser.add_argument('--patch_size', type=list,  default=[224, 224],
                     help='patch size of network input')
 
 parser.add_argument(
@@ -163,7 +163,8 @@ def Inference(FLAGS):
     _, _, test_dataset, _, _, test_list = build_dataset_ssl(data_path=DATA_PATH, 
                                             tile_image_path=TILE_IMAGE_PATH,
                                             tile_label_path=TILE_LABEL_PATH, 
-                                            dataclass=FLAGS.data_class)
+                                            dataclass=FLAGS.data_class, 
+                                            output_size=FLAGS.patch_size)
     
     test_save_path = f"../model/{FLAGS.exp}_{FLAGS.labeled_num}/{FLAGS.model}_model{FLAGS.one_or_two}_predictions/"
     print(f"test is saved to path = {test_save_path}")
