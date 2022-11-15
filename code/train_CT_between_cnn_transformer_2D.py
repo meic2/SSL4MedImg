@@ -122,8 +122,8 @@ if args.data_class == 2:
 
 elif args.data_class == 3:
     DATA_PATH = '../../dataset/Dermatomyositis/original_data/'
-    TILE_IMAGE_PATH = '../../dataset/Dermatomyositis/InterpolateOnly_image/'
-    TILE_LABEL_PATH = '../../dataset/Dermatomyositis/InterpolateOnly_label/'
+    TILE_IMAGE_PATH = '../../dataset/Dermatomyositis/interpolateOnly_image/'
+    TILE_LABEL_PATH = '../../dataset/Dermatomyositis/interpolateOnly_label/'
 
 
 print(torch.cuda.is_available())
@@ -248,7 +248,6 @@ def train(args, snapshot_path):
     ce_weights = losses.reverse_weight(losses.calculate_weights(TILE_LABEL_PATH))
     print(f"CE Weights are {ce_weights}")
     ce_loss = CrossEntropyLoss(reduction='mean', weight=torch.tensor(ce_weights).type(torch.cuda.FloatTensor))
-    # ce_loss = CrossEntropyLoss()
     dice_loss = losses.DiceLoss(num_classes)
 
     writer = SummaryWriter(snapshot_path + '/log')
