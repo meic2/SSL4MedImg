@@ -63,7 +63,7 @@ parser.add_argument('--deterministic', type=int,  default=1,
                     help='whether use deterministic training')
 parser.add_argument('--base_lr', type=float,  default=0.01,
                     help='segmentation network learning rate')
-parser.add_argument('--patch_size', type=list,  default=[480, 480],
+parser.add_argument('--patch_size', type=list,  default=[224, 224],
                     help='patch size of network input')
 parser.add_argument('--seed', type=int,  default=1234, help='random seed')
 parser.add_argument('--num_classes', type=int,  default=2,
@@ -123,8 +123,8 @@ if args.data_class == 2:
     TILE_LABEL_PATH = '../../dataset/Dermatomyositis/tile_label/'
 elif args.data_class == 3:
     DATA_PATH = '../../dataset/Dermatomyositis/original_data/'
-    TILE_IMAGE_PATH = '../../dataset/Dermatomyositis/InterpolateOnly_image/'
-    TILE_LABEL_PATH = '../../dataset/Dermatomyositis/InterpolateOnly_label/'
+    TILE_IMAGE_PATH = '../../dataset/Dermatomyositis/interpolateOnly_image/'
+    TILE_LABEL_PATH = '../../dataset/Dermatomyositis/interpolateOnly_label/'
 
 
 print(torch.cuda.is_available())
@@ -216,7 +216,7 @@ def train(args, snapshot_path):
     #     RandomGenerator(args.patch_size)
     # ]))
     # db_val = BaseDataSets(base_dir=args.root_path, split="val")
-    db_train, db_val, db_test,  _, _, _ = build_dataset_ssl(DATA_PATH, TILE_IMAGE_PATH, TILE_LABEL_PATH, args.data_class)
+    db_train, db_val, db_test,  _, _, _ = build_dataset_ssl(DATA_PATH, TILE_IMAGE_PATH, TILE_LABEL_PATH, args.data_class, args.patch_size)
 
     total_slices = len(db_train)
     labeled_slice = patients_to_slices(args.root_path, args.labeled_num, len(db_train), UsePercentage_flag=True)
@@ -242,7 +242,6 @@ def train(args, snapshot_path):
                            num_workers=1)
 
     optimizer1 = optim.Adam(model1.parameters(), lr=3.6e-04, weight_decay=1e-05)
-
     optimizer2 = optim.Adam(model2.parameters(), lr=3.6e-04, weight_decay=1e-05)
 
     optimizer_AE = optim.Adam(AE.parameters(), lr=1e-3)
@@ -365,7 +364,7 @@ def train(args, snapshot_path):
                                       metric_list[class_i, 1], iter_num)
                     writer.add_scalar('info/model1_val_{}_asd'.format(class_i+1),
                                       metric_list[class_i, 2], iter_num)
-                    writer.add_scalar('infor/model1_val_{}_iou'.format(class_i+1), 
+                    writer.add_scalar('info/model1_val_{}_iou'.format(class_i+1), 
                                       metric_list[class_i, 3], iter_num)
 
                 performance1 = np.mean(metric_list, axis=0)[0] ## dice
@@ -411,9 +410,9 @@ def train(args, snapshot_path):
                                       metric_list[class_i, 0], iter_num)
                     writer.add_scalar('info/model2_val_{}_hd95'.format(class_i+1),
                                       metric_list[class_i, 1], iter_num)
-                    writer.add_scalar('infor/model2_val_{}_asd'.format(class_i+1), 
+                    writer.add_scalar('info/model2_val_{}_asd'.format(class_i+1), 
                                       metric_list[class_i, 2], iter_num)
-                    writer.add_scalar('infor/model2_val_{}_iou'.format(class_i+1), 
+                    writer.add_scalar('info/model2_val_{}_iou'.format(class_i+1), 
                                       metric_list[class_i, 3], iter_num)
 
                 performance2 = np.mean(metric_list, axis=0)[0] ## dice

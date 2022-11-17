@@ -246,9 +246,9 @@ def train(args, snapshot_path):
     scheduler2 = lr_scheduler.CosineAnnealingLR(optimizer2, T_max=50, eta_min=5e-6,last_epoch=-1)
 
     ce_weights = losses.reverse_weight(losses.calculate_weights(TILE_LABEL_PATH))
+    ce_weights=torch.tensor(ce_weights).type(torch.cuda.FloatTensor)
     print(f"CE Weights are {ce_weights}")
-    ce_loss = CrossEntropyLoss(reduction='mean', weight=torch.tensor(ce_weights).type(torch.cuda.FloatTensor))
-
+    ce_loss = CrossEntropyLoss(reduction='mean', weight=ce_weights)
     dice_loss = losses.DiceLoss(num_classes)
 
     writer = SummaryWriter(snapshot_path + '/log')
@@ -263,6 +263,11 @@ def train(args, snapshot_path):
         for i_batch, sampled_batch in enumerate(trainloader):
             volume_batch, label_batch = sampled_batch['image'], sampled_batch['label']
             volume_batch, label_batch = volume_batch.cuda(), label_batch.cuda()
+            # print("set(volume_batch[0]): ", set(volume_batch[0]))
+            # print(f"volume_batch.shape: {volume_batch.shape}, label_batch.shape: {label_batch.shape}")
+            # print("max(volume_batch[0]): ", torch.max(volume_batch[0]), "min(volume_batch[0])", torch.min(volume_batch[0]))
+            # print("set(label_batch[0]): ", set(label_batch[0]))
+            # print("max(label_batch[0]): ", torch.max(label_batch[0]), "min(label_batch[0])", torch.min(label_batch[0]))
 
             #change dimension
             label_batch = label_batch.squeeze(1)
@@ -476,7 +481,7 @@ if __name__ == "__main__":
     if os.path.exists(snapshot_path + '/code'):
         shutil.rmtree(snapshot_path + '/code')
     shutil.copytree('.', snapshot_path + '/code',
-                    shutil.ignore_patterns(['.git', '__pycache__']))
+                    shutil.ignore_patterns(['.git', '__pycache__', '.out']))
 
     logging.basicConfig(filename=snapshot_path+"/log.txt", level=logging.INFO,
                         format='[%(asctime)s.%(msecs)03d] %(message)s', datefmt='%H:%M:%S')

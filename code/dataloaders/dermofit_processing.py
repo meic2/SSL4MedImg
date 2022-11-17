@@ -9,12 +9,32 @@ import random
 from scipy import ndimage
 import logging
 
+
+class Resize(object):
+    def __init__(self, output_size = [224,224]):
+        self.output_size = output_size
+    
+    def __call__(self, image):
+        """
+        :param image: tensor image or label
+        :return: zoomed image to size output_size
+        """
+        _, x, y = image.shape
+        zoom_factor = 1, self.output_size[0]/ x, self.output_size[1]/ y
+        image = zoom(image, zoom_factor, order=0)
+
+        return torch.tensor(image)
+
+    def __repr__(self):
+        return self.__class__.__name__+'()'
+
 class RandomGenerator(object):
     def __init__(self, isRnorm, output_size = [224, 224]):
         self.ToPILImage = transforms.ToPILImage()
         self.ToTensor = transforms.ToTensor()
         self.isRnorm = isRnorm
         self.output_size=output_size
+        self.Resize=Resize(output_size)
         
         DATASET_IMAGE_MEAN = (0.485,0.456, 0.406)
         DATASET_IMAGE_STD = (0.229,0.224, 0.225)
@@ -33,18 +53,26 @@ class RandomGenerator(object):
             image, label = self.random_rot_flip(image, label)
         elif random.random() > 0.5:
             image, label = self.random_rotate(image, label)
+        
+        # image = torch.from_numpy(image.astype(np.float32)).unsqueeze(0)
+        # label = torch.from_numpy(label.astype(np.uint8))
+    
         ''' toTensor()'''
-        image = self.ToTensor(image)        
+        image = self.ToTensor(image)  
+        label = self.ToTensor(label)
+
+        # image, label = self.resize(image, label) 
+        image = self.Resize(image)
+        label = self.Resize(label)       
+          
         ''' Rnorm '''
         if self.isRnorm:
             image = self.Rnorm(image)
-        
-        label = self.ToTensor(label)
 
-        image, label = self.resize(image, label)
 
         sample = {"image": image, "label": label}
         return sample
+    
 
     def random_rot_flip(self, image, label=None):
         k = np.random.randint(0, 4) # number of times to be rotated
@@ -63,12 +91,13 @@ class RandomGenerator(object):
         image = ndimage.rotate(image, angle, order=0, reshape=False)
         label = ndimage.rotate(label, angle, order=0, reshape=False)
         return image, label
-    def resize(self, image, label):
-        _, x, y = image.shape
-        zoom_factor = 1, self.output_size[0] / x, self.output_size[1] / y
-        image = zoom(image, zoom_factor, order=0)
-        label = zoom(label, zoom_factor,  order=0)
-        return image, label
+    
+    # def resize(self, image, label):
+    #     _, x, y = image.shape
+    #     zoom_factor = 1, self.output_size[0]/ x, self.output_size[1]/ y
+    #     image = zoom(image, zoom_factor, order=0)
+    #     label = zoom(label, zoom_factor,  order=0)
+    #     return image, label
 
 
 class CustomDataset(Dataset):
@@ -197,8 +226,8 @@ def build_dataset_ssl(data_path, tile_image_path, tile_label_path, dataclass, ou
         RandomGenerator(dataclass==1, output_size=output_size),
         ])
 
-    transform_val=transforms.Compose([transforms.ToPILImage(),transforms.ToTensor()])
-    transform_test=transforms.Compose([transforms.ToPILImage(),transforms.ToTensor()])
+    transform_val=transforms.Compose([transforms.ToPILImage(),transforms.ToTensor(), Resize()])
+    transform_test=transforms.Compose([transforms.ToPILImage(),transforms.ToTensor(),Resize()])
 
     return build_dataset(
         data_path, tile_image_path, tile_label_path, 
@@ -212,7 +241,7 @@ if __name__ == '__main__':
  TILE_IMAGE_PATH = '../../dataset/Dermatomyositis/tile_image/'
  TILE_LABEL_PATH = '../../dataset/Dermatomyositis/tile_label/'
  
- train_loader, validation_laoder, test_loader = build_dataset(DATA_PATH, TILE_IMAGE_PATH, TILE_LABEL_PATH, 
-                                                           transform_train = None, transform_val = None, transform_test = None,
-                                                           isDermorfit = 'Dermofit' in DATA_PATH)
+ db_train, db_val, db_test,  _, _, _ = build_dataset_ssl(DATA_PATH, TILE_IMAGE_PATH, TILE_LABEL_PATH, dataclass = 2)
+ print(f"db_train[0]['image'].shape: {db_train[0]['image'].shape}")
+
  
