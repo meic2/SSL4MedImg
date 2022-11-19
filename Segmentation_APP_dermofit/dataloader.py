@@ -35,7 +35,7 @@ class CustomDataset(Dataset):
         return inputs, mask_label
 
 def build_dataloader(data_path, tile_image_path, tile_label_path, 
-                    transform_train, transform_val, transform_test):
+                    transform_train, transform_val, transform_test, train_ratio= 100):
 
     train_lis = []
     validation_lis = []
@@ -80,6 +80,7 @@ def build_dataloader(data_path, tile_image_path, tile_label_path,
             test_list.append([(image, label)])
 
     train_list = list(itertools.chain(*train_list))
+    train_list = train_list[:len(train_list)*train_ratio//100]
     validation_list = list(itertools.chain(*validation_list))
     test_list = list(itertools.chain(*test_list))
 
