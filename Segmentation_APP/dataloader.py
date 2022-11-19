@@ -38,7 +38,7 @@ class CustomDataset(Dataset):
 
 def build_dataloader(data_path, label_path, mask_label_path, 
                     tile_image_path, tile_label_path, 
-                    transform_train, transform_val, transform_test):
+                    transform_train, transform_val, transform_test, train_ratio=100):
     """
     To keep the results comparable we are using 
     the same splits as Van Buren et al (https://www.sciencedirect.com/science/article/pii/S0022175922000205), 
@@ -60,11 +60,13 @@ def build_dataloader(data_path, label_path, mask_label_path,
                 for _ in selected_data if _[:13] in ['121919_Myo231', '121919_Myo511']]
                 
     train_list = list(itertools.chain(*train_list))
+    print('origin train data: {}'.format(len(train_list)))
+    train_list = train_list[:len(train_list)*train_ratio//100]
     validation_list = list(itertools.chain(*validation_list))
     test_list = list(itertools.chain(*test_list))
-    # print('train data: {}'.format(len(train_list)))
-    # print('validation data: {}'.format(len(validation_list)))
-    # print('test data: {}'.format(len(test_list)))
+    print('ratio-ed train data: {}'.format(len(train_list)))
+    print('validation data: {}'.format(len(validation_list)))
+    print('test data: {}'.format(len(test_list)))
 
     dataloader = {}
     dataloader['train'] = DataLoader(CustomDataset(train_list, tile_image_path, tile_label_path, transform=transform_train, mode='train'), batch_size=16, shuffle=True, num_workers=3, drop_last=False)

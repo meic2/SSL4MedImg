@@ -11,6 +11,7 @@ import random
 import os
 from datetime import datetime
 import torch.nn.functional as F
+from scipy.ndimage.interpolation import zoom
 
 from autoencoder import AutoencoderReLu, AutoencoderGeLu
 from dataloader import build_dataloader
@@ -32,7 +33,10 @@ parser.add_argument('-ae', '--ae', action='store_true',
 parser.add_argument('-unet', '--unet', action='store_true', 
                     help='use Unet or Unet++')
 parser.add_argument('-cuda', '--cuda', type=str,
-                    default='cuda:0', help='choose gpu')         
+                    default='cuda:0', help='choose gpu') 
+parser.add_argument('-r', '--ratio', type=int,
+                    default=100, help='choose percentage of data being trained')              
+        
 args = parser.parse_args()
 os.environ['CUDA_LAUNCH_BLOCKING']='1'
 
@@ -47,7 +51,27 @@ tile_label_path = '../../dataset/Dermatomyositis/tile_label/'
 save_metric_path = './metric_save'
 save_model_directory='../../DEDL_Saved_model/'
 
-class RandomGenerator(object):
+class Resize(object):
+    def __init__(self, output_size = [224,224]):
+        self.output_size = output_size
+    
+    def __call__(self, image):
+        """
+        :param image: tensor image or label
+        :return: zoomed image to size output_size
+        """
+        
+        _, x, y = image.shape
+        zoom_factor = 1, self.output_size[0]/ x, self.output_size[1]/ y
+                
+        image = zoom(image, zoom_factor, order=0)
+
+        return torch.tensor(image)
+
+    def __repr__(self):
+        return self.__class__.__name__+'()'
+
+class RandomGenerator(object): #NO Rnorm for dermasytositis
     def __init__(self):
         self.ToPILImage = transforms.ToPILImage()
         self.ToTensor = transforms.ToTensor()
@@ -55,7 +79,8 @@ class RandomGenerator(object):
         DATASET_IMAGE_MEAN = (0.485,0.456, 0.406)
         DATASET_IMAGE_STD = (0.229,0.224, 0.225)
         self.Normalize = transforms.Normalize(DATASET_IMAGE_MEAN, DATASET_IMAGE_STD)
-        
+        self.Resize=Resize()
+
     def Rnorm(self, image=None):
         image[0] = image[0]/np.sqrt(image[0]*image[0] + image[1]*image[1] + image[2]*image[2] + 1e-11)
         return image
@@ -70,11 +95,14 @@ class RandomGenerator(object):
         elif random.random() > 0.5:
             image, label = random_rotate(image, label)
         ''' toTensor()'''
-        image = self.ToTensor(image)        
-        ''' Rnorm '''
-        # image = self.Rnorm(image)
-        
+        image = self.ToTensor(image) 
         label = self.ToTensor(label)
+        '''resize (zoom) input image'''
+
+        image = self.Resize(image)
+        label = self.Resize(label)         
+        # ''' Rnorm '''
+        # image = self.Rnorm(image)
 
         sample = {"image": image, "label": label}
         return sample
@@ -328,18 +356,19 @@ if __name__ == "__main__":
         RandomGenerator(),
         ])
 
-    transform_val=transforms.Compose([transforms.ToPILImage(),transforms.ToTensor()])
-    transform_test=transforms.Compose([transforms.ToPILImage(),transforms.ToTensor()])
+    transform_val=transforms.Compose([transforms.ToPILImage(),transforms.ToTensor(), Resize()])
+    transform_test=transforms.Compose([transforms.ToPILImage(),transforms.ToTensor(), Resize()])
 
     dataloader = build_dataloader(
         data_path, label_path, mask_label_path, 
         tile_image_path, tile_label_path, 
-        transform_train, transform_val, transform_test)
+        transform_train, transform_val, transform_test, args.ratio)
     
     device = torch.device(args.cuda if torch.cuda.is_available() else "cpu")
     print(device)
 
     encoder_name = args.encoder
+    print("current ratio is "+str(args.ratio)+"%")
     print("the encoder name is "+ encoder_name)
     print("Use GELU: " + str(args.gelu))
     print("Use Unet: " + str(args.unet))
