@@ -35,7 +35,11 @@ parser.add_argument('-unet', '--unet', action='store_true',
 parser.add_argument('-cuda', '--cuda', type=str,
                     default='cuda:0', help='choose gpu') 
 parser.add_argument('-r', '--ratio', type=int,
-                    default=100, help='choose percentage of data being trained')              
+                    default=100, help='choose percentage of data being trained') 
+parser.add_argument('-data_class', '--data_class', type=int,
+                    default=2, 
+                    help = '1 for Dermofit, 2 for Dermatomyositis TilingOnly, 3 for Dermatomyositis interpolateOnly')
+             
         
 args = parser.parse_args()
 os.environ['CUDA_LAUNCH_BLOCKING']='1'
@@ -50,6 +54,16 @@ tile_image_path = '../../dataset/Dermatomyositis/tile_image/'
 tile_label_path = '../../dataset/Dermatomyositis/tile_label/'
 save_metric_path = './metric_save'
 save_model_directory='../../DEDL_Saved_model/'
+
+if args.data_class == 2:
+    data_path = '../../dataset/Dermatomyositis/original_data/'
+    tile_image_path = '../../dataset/Dermatomyositis/tile_image/'
+    tile_label_path = '../../dataset/Dermatomyositis/tile_label/'
+
+elif args.data_class == 3:
+    data_path = '../../dataset/Dermatomyositis/original_data/'
+    tile_image_path = '../../dataset/Dermatomyositis/interpolateOnly_image/'
+    tile_label_path = '../../dataset/Dermatomyositis/interpolateOnly_label/'
 
 class Resize(object):
     def __init__(self, output_size = [224,224]):
@@ -362,7 +376,7 @@ if __name__ == "__main__":
     dataloader = build_dataloader(
         data_path, label_path, mask_label_path, 
         tile_image_path, tile_label_path, 
-        transform_train, transform_val, transform_test, args.ratio)
+        transform_train, transform_val, transform_test, args.ratio, args.data_class)
     
     device = torch.device(args.cuda if torch.cuda.is_available() else "cpu")
     print(device)
