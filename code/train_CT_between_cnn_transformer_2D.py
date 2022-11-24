@@ -208,6 +208,13 @@ def train(args, snapshot_path):
                      num_classes=args.num_classes).cuda()
     model2.load_from(config)
 
+    def count_parameters(model):
+        return sum(p.numel() for p in model.parameters() if p.requires_grad)
+    
+    print(count_parameters(model1))
+    print(count_parameters(model2))
+
+
     def worker_init_fn(worker_id):
         random.seed(args.seed + worker_id)
 
