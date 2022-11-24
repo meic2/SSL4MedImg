@@ -8,7 +8,8 @@ import itertools
 import random
 from scipy import ndimage
 import logging
-
+from random import sample
+from sklearn.model_selection import train_test_split
 
 class Resize(object):
     def __init__(self, output_size = [224,224]):
@@ -146,9 +147,9 @@ def build_dataset(data_path, tile_image_path, tile_label_path,
     test_list = []
     
     if dataclass == 1:
-        train_percent = 0.8
+        train_percent = 0.7
         validation_percent = 0.1
-        ## remained 0.1 are test 
+        ## remained 0.2 are test 
         
         for one_type in os.listdir(data_path):  # e.g. one_type =='AK
             if len(one_type) >= 4 and (one_type[-4:] == '.zip' or one_type[-4:] == '.txt'):
@@ -185,22 +186,40 @@ def build_dataset(data_path, tile_image_path, tile_label_path,
         data_file = os.listdir(data_path+"CD27_Panel_Component/")
         label_file = os.listdir(data_path+"Labels/CD27_cell_labels/")
         mask_label_file = os.listdir(data_path+"Labels/CD27_cell_labels/Mask_Labels/")
-        selected_data = set([_[:-9] for _ in data_file]).intersection(set([_[:-11] for _ in label_file])).intersection(set([_[:-17] for _ in mask_label_file]))
+        selected_data = list(set([_[:-9] for _ in data_file]).intersection(set([_[:-11] for _ in label_file])).intersection(set([_[:-17] for _ in mask_label_file]))) # 121919_Myo089_[7110,44031]_component
         # print("Length of selected data: ", len(selected_data))
+        # print(f"selected_data: {selected_data}")
+        X_train, X_test, y_train, _ = train_test_split(selected_data, [1]*len(selected_data), test_size=0.2, random_state=42)
+        ## overwrite X_train once more
+        X_train, X_val, _, _ = train_test_split(X_train, y_train, test_size=0.125, random_state=43)
+        # print(f"X_train {X_train}, X_val: {X_val}")
         if dataclass==2:
+            # train_list = [[(_ + '_data_' + str(idx) + '.npy',  _ + '_mask_' + str(idx) + '.npy') for idx in range(12)] 
+            #             for _ in selected_data if _[:13] in ['121919_Myo089', '121919_Myo253', '121919_Myo368']]
+            # validation_list = [[(_ + '_data_' + str(idx) + '.npy', _ + '_mask_' + str(idx) + '.npy') for idx in range(12)] 
+            #                 for _ in selected_data if _[:13] in ['121919_Myo208', '121919_Myo388']]
+            # test_list = [[(_ + '_data_' + str(idx) + '.npy', _ + '_mask_' + str(idx) + '.npy') for idx in range(12)] 
+            #             for _ in selected_data if _[:13] in ['121919_Myo231', '121919_Myo511']]
             train_list = [[(_ + '_data_' + str(idx) + '.npy',  _ + '_mask_' + str(idx) + '.npy') for idx in range(12)] 
-                        for _ in selected_data if _[:13] in ['121919_Myo089', '121919_Myo253', '121919_Myo368']]
+                        for _ in X_train]
             validation_list = [[(_ + '_data_' + str(idx) + '.npy', _ + '_mask_' + str(idx) + '.npy') for idx in range(12)] 
-                            for _ in selected_data if _[:13] in ['121919_Myo208', '121919_Myo388']]
+                            for _ in X_val]
             test_list = [[(_ + '_data_' + str(idx) + '.npy', _ + '_mask_' + str(idx) + '.npy') for idx in range(12)] 
-                        for _ in selected_data if _[:13] in ['121919_Myo231', '121919_Myo511']]
+                        for _ in X_test]
+        
         if dataclass==3: #interpolation only contains one interpolated image per one raw image
+            # train_list = [[(_ + '_data'  + '.npy',  _ + '_mask' + '.npy')]
+            #             for _ in selected_data if _[:13] in ['121919_Myo089', '121919_Myo253', '121919_Myo368']]
+            # validation_list = [[(_ + '_data' + '.npy', _ + '_mask' + '.npy')] 
+            #                 for _ in selected_data if _[:13] in ['121919_Myo208', '121919_Myo388']]
+            # test_list = [[(_ + '_data' + '.npy', _ + '_mask' + '.npy')] 
+            #             for _ in selected_data if _[:13] in ['121919_Myo231', '121919_Myo511']]
             train_list = [[(_ + '_data'  + '.npy',  _ + '_mask' + '.npy')]
-                        for _ in selected_data if _[:13] in ['121919_Myo089', '121919_Myo253', '121919_Myo368']]
+                        for _ in X_train]
             validation_list = [[(_ + '_data' + '.npy', _ + '_mask' + '.npy')] 
-                            for _ in selected_data if _[:13] in ['121919_Myo208', '121919_Myo388']]
+                            for _ in X_val]
             test_list = [[(_ + '_data' + '.npy', _ + '_mask' + '.npy')] 
-                        for _ in selected_data if _[:13] in ['121919_Myo231', '121919_Myo511']]
+                        for _ in X_test]
 
     train_list = list(itertools.chain(*train_list))
     validation_list = list(itertools.chain(*validation_list))
