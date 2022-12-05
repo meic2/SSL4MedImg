@@ -80,6 +80,8 @@ def build_dataloader(data_path, tile_image_path, tile_label_path,
             test_list.append([(image, label)])
 
     train_list = list(itertools.chain(*train_list))
+    print('origin train data: {}'.format(len(train_list)))
+    
     train_list = train_list[:len(train_list)*train_ratio//100]
     validation_list = list(itertools.chain(*validation_list))
     test_list = list(itertools.chain(*test_list))

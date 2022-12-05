@@ -398,7 +398,12 @@ if __name__ == "__main__":
             in_channels=3, classes=2, encoder_depth=3, decoder_channels=(256, 128, 64))
 
     model = model.to(device)
-    criterion = nn.CrossEntropyLoss(reduction='sum', weight=torch.tensor([0.7180376788665532, 1.6465908143176757])).to(device)
+    def count_parameters(model):
+        return sum(p.numel() for p in model.parameters() if p.requires_grad)
+    print(count_parameters(model))
+    exit()
+    # weight intialization use the reverse of ratio between labeled and unlabeled data
+    criterion = nn.CrossEntropyLoss(reduction='sum', weight=torch.tensor([0.3036577123397436, 0.6963422876602564])).to(device)
     optimizer = optim.Adam(model.parameters(), lr=3.6e-04, weight_decay=1e-05)
     if args.gelu:
         autoencoder = AutoencoderGeLu()

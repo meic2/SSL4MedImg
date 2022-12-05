@@ -1,0 +1,10 @@
+**.out
+*.pyc
+*.SBATCH
+*.out
+*.pt
+**/**/saved_model/
+**/**/saved_metric/
+**/**/output_file/
+*.csv
+Segmentation_APP_dermofit/__pycache__/dataloader.cpython-39.pyc
