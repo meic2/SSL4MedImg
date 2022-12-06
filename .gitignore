@@ -1,0 +1,4 @@
+KFold_pt/**
+Saved_model/**
+Segmentation_APP_dermofit/*.sbatch
+Segmentation_APP_dermofit/*.sh

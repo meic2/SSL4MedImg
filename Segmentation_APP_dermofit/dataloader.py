@@ -5,6 +5,11 @@ from torch.utils.data import Dataset
 import os
 import itertools
 from torch.utils.data import DataLoader
+from data_mapping import find_local_tile_image_label
+
+train_csv = "/scratch/lc4866/DEDL_Semisupervised_code_version/KFold_pt/train.csv"
+test_csv = "/scratch/lc4866/DEDL_Semisupervised_code_version/KFold_pt/test.csv"
+mapping_txt = "/scratch/lc4866/DEDL_Semisupervised_code_version/KFold_pt/splits.txt"
 
 class CustomDataset(Dataset):
     def __init__(self, file_list, tile_image_path, tile_label_path, transform = None, mode = 'train'):
@@ -35,13 +40,13 @@ class CustomDataset(Dataset):
         return inputs, mask_label
 
 def build_dataloader(data_path, tile_image_path, tile_label_path, 
-                    transform_train, transform_val, transform_test, train_ratio= 100):
+                     transform_train, transform_val, transform_test, train_ratio=100, KthFold=0):
 
     train_lis = []
     validation_lis = []
     test_lis = []
 
-    train_percent = 0.8
+    train_percent = 0.7
     validation_percent = 0.1
     ## remained 0.1 are test 
 
@@ -52,7 +57,7 @@ def build_dataloader(data_path, tile_image_path, tile_label_path,
         type_all_instances = os.listdir(data_path + one_type + '/')
         type_total_count = len(type_all_instances)
         print(f"one_type = {one_type}, total count of instances = {type_total_count}")
-        # print(type_all_instances) ['B643', 'A75', 'P374', 'B666', 'D379',...]
+        ## print(type_all_instances) ['B643', 'A75', 'P374', 'B666', 'D379',...]
 
         train_lis += [one_type + '_' + i for i in type_all_instances[:int(type_total_count*train_percent)]]
         validation_lis += [one_type + '_' + i for i in type_all_instances[int(type_total_count*train_percent): int(type_total_count*(train_percent+validation_percent))]]
@@ -67,16 +72,30 @@ def build_dataloader(data_path, tile_image_path, tile_label_path,
     all_images = sorted(list(os.listdir(tile_image_path)))
     all_labels = sorted(list(os.listdir(tile_label_path)))
 
+        
     train_list = []
     validation_list = []
     test_list = []
-
-    for image, label in zip(all_images, all_labels):
-        if image[:-11] in train_lis:
+    if KthFold is None:
+        for image, label in zip(all_images, all_labels):
+            if image[:-11] in train_lis:
+                train_list.append([(image, label)])
+            elif image[:-11] in validation_lis:
+                validation_list.append([(image, label)])
+            elif image[:-11] in test_lis:
+                test_list.append([(image, label)])
+    else: ## k-fold
+        print("using K fold...")
+        train_lis_image, train_lis_mask, val_lis_image, val_lis_mask = find_local_tile_image_label(train_csv,
+                                                                                                   mapping_txt,
+                                                                                                   KthFold=KthFold)
+        test_lis_image = all_images - train_lis_image - val_lis_image
+        test_lis_mask = all_labels - train_lis_mask - val_lis_mask
+        for image, label in zip(train_lis_image, train_lis_mask):
             train_list.append([(image, label)])
-        elif image[:-11] in validation_lis:
+        for image, label in zip(val_lis_image, val_lis_mask):
             validation_list.append([(image, label)])
-        elif image[:-11] in test_lis:
+        for image, label in zip(test_lis_image, test_lis_mask):
             test_list.append([(image, label)])
 
     train_list = list(itertools.chain(*train_list))
