@@ -2,14 +2,16 @@ from glob import glob
 import numpy as np
 
 def table(iou, time, file_name, num, time_num):
-    seed_num = int(file_name.split('_')[3][4:])
-    resnet_num = int(file_name.split('_')[4][6:])
-    unet_num = file_name.split('_')[5]
-    if len(file_name.split('_')) == 8:
-        ae = file_name.split('_')[7]
-        activation = file_name.split('_')[6]
-    elif len(file_name.split('_')) == 7:
-        ae = file_name.split('_')[6]
+    prefix_idx = 2
+    print(file_name.split('_'))
+    seed_num = int(file_name.split('_')[3+prefix_idx][4:])
+    resnet_num = int(file_name.split('_')[4+prefix_idx][6:])
+    unet_num = file_name.split('_')[5+prefix_idx]
+    if len(file_name.split('_')) == 8+prefix_idx:
+        ae = file_name.split('_')[7+prefix_idx]
+        activation = file_name.split('_')[6+prefix_idx]
+    elif len(file_name.split('_')) == 7+prefix_idx:
+        ae = file_name.split('_')[6+prefix_idx]
         activation = ''
 
     time_min = float(time_num[0]) * 60
@@ -68,7 +70,7 @@ def table(iou, time, file_name, num, time_num):
     return iou, time
 
 if __name__ == "__main__":
-    img_files = glob(r'../Segmentation_APP_dermofit/output_file/*.out')
+    img_files = glob(r'../Segmentation_APP_ISIC2017/output_file/*.out')
 
     iou = np.zeros((12, 6))
     time = np.zeros((12, 6))
@@ -79,8 +81,8 @@ if __name__ == "__main__":
             lines = f.readlines()
             last_line = lines[-1]
             time_line = lines[-15]
-            file_name = img_file.split('.')[0]
-
+            file_name = img_file.split('.')[2]
+            print(time_line[34:41])
             iou, time = table(iou, time, file_name, last_line[12:18], time_line[34:41])
                 
     print(iou)

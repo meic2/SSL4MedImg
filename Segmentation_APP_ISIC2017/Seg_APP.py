@@ -15,7 +15,7 @@ from scipy.ndimage.interpolation import zoom
 
 from autoencoder import AutoencoderReLu, AutoencoderGeLu
 from dataloader import build_dataloader
-from utili import save_metric
+from utili import save_metric, reverse_weight, calculate_weights
 from test_model import test_model_func
 from scipy import ndimage, misc
 
@@ -35,18 +35,18 @@ parser.add_argument('-unet', '--unet', action='store_true',
 parser.add_argument('-cuda', '--cuda', type=str,
                     default='cuda:0', help='choose gpu')
 parser.add_argument('-r', '--ratio', type=int,
-                    default=100, help='choose percentage of data being trained')              
+                    default=70, help='choose percentage of data being trained')              
 args = parser.parse_args()
 os.environ['CUDA_LAUNCH_BLOCKING']='1'
 
 '''
 CONSTANTS
 '''
-data_path = '../../dataset/Dermofit/original_data/'
-tile_image_path = '../../dataset/Dermofit_resize_noTiling/resize_image/'
-tile_label_path = '../../dataset/Dermofit_resize_noTiling/resize_label/'
-save_metric_path = './metric_save'
-save_model_directory='../../DEDL_Saved_model/'
+data_path = '../../dataset/ISIC2017/original_data/'
+tile_image_path = '../../dataset/ISIC2017/resize_image/'
+tile_label_path = '../../dataset/ISIC2017/resize_label/'
+save_metric_path = 'saved_metric/'
+save_model_directory='saved_models/'
 
 class Resize(object):
     def __init__(self, output_size = [224,224]):
@@ -370,23 +370,23 @@ if __name__ == "__main__":
     print("Use GELU: " + str(args.gelu))
     print("Use Unet: " + str(args.unet))
     print("Use AE: " + str(args.ae))
-
+    dataset_name = '_isic2017'
     if args.ae:    
         if args.gelu:
             if args.unet:
-                model_name = 'Unet_' + encoder_name + '_dermofit'+ "_seed" + str(args.seed) + "_gelu"
+                model_name = 'Unet_' + encoder_name + dataset_name+ "_seed" + str(args.seed) + "_gelu"
             else:
-                model_name = 'Unetpp_' + encoder_name + '_dermofit'+ "_seed" + str(args.seed) + "_gelu"
+                model_name = 'Unetpp_' + encoder_name + dataset_name+ "_seed" + str(args.seed) + "_gelu"
         else:
             if args.unet:
-                model_name = 'Unet_' + encoder_name + '_dermofit'+ "_seed" + str(args.seed) + "_relu"
+                model_name = 'Unet_' + encoder_name + dataset_name+ "_seed" + str(args.seed) + "_relu"
             else:
-                model_name = 'Unetpp_' + encoder_name + '_dermofit'+ "_seed" + str(args.seed) + "_relu"
+                model_name = 'Unetpp_' + encoder_name + dataset_name+ "_seed" + str(args.seed) + "_relu"
     else:
         if args.unet:
-                model_name = 'Unet_' + encoder_name + '_dermofit'+ "_seed" + str(args.seed) + "_woAE"
+                model_name = 'Unet_' + encoder_name + dataset_name+ "_seed" + str(args.seed) + "_woAE"
         else:
-            model_name = 'Unetpp_' + encoder_name + '_dermofit'+ "_seed" + str(args.seed) + "_woAE"
+            model_name = 'Unetpp_' + encoder_name + dataset_name+ "_seed" + str(args.seed) + "_woAE"
     
     if args.unet:
         model = smp.Unet(
@@ -401,9 +401,12 @@ if __name__ == "__main__":
     def count_parameters(model):
         return sum(p.numel() for p in model.parameters() if p.requires_grad)
     print(count_parameters(model))
-    exit()
     # weight intialization use the reverse of ratio between labeled and unlabeled data
-    criterion = nn.CrossEntropyLoss(reduction='sum', weight=torch.tensor([0.3036577123397436, 0.6963422876602564])).to(device)
+    ce_weights = reverse_weight(calculate_weights(tile_label_path))
+    ce_weights=torch.tensor(ce_weights).type(torch.cuda.FloatTensor)
+    print(f"CE Weights are {ce_weights}")
+    criterion = nn.CrossEntropyLoss(reduction='sum', weight=ce_weights)
+    # criterion = nn.CrossEntropyLoss(reduction='sum', weight=torch.tensor([0.3036577123397436, 0.6963422876602564])).to(device)
     optimizer = optim.Adam(model.parameters(), lr=3.6e-04, weight_decay=1e-05)
     if args.gelu:
         autoencoder = AutoencoderGeLu()
