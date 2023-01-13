@@ -46,8 +46,6 @@ from val_2D import test_single_volume
 from torch.optim import lr_scheduler
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--root_path', type=str,
-                    default='../../DEDL_dataset/Dermofit', help='Name of Experiment')
 parser.add_argument('--data_class', type=int, default=None,
                     help = '1 for Dermofit, 2 for Dermatomyositis TilingOnly, 3 for Dermatomyositis interpolateOnly')
 parser.add_argument('--exp', type=str,
@@ -218,10 +216,6 @@ def train(args, snapshot_path):
     def worker_init_fn(worker_id):
         random.seed(args.seed + worker_id)
 
-    # db_train = BaseDataSets(base_dir=args.root_path, split="train", num=None, transform=transforms.Compose([
-    #     RandomGenerator(args.patch_size)
-    # ]))
-    # db_val = BaseDataSets(base_dir=args.root_path, split="val")
     db_train, db_val, db_test,  _, _, _ = build_dataset_ssl(DATA_PATH, TILE_IMAGE_PATH, TILE_LABEL_PATH, args.data_class, args.patch_size)
 
     total_slices = len(db_train)
