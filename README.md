@@ -2,19 +2,19 @@
 
 This repo is a replication of [Semi-supervised Learning for Medical Image Segmentation (SSL4MIS)](https://github.com/HiLab-git/SSL4MIS/tree/master/code) that implements the model's application to three different datasets listed below. 
 
-## data 
+## Data 
 We currently support three datasets listed below: 
 
-### Dermofit
+#### Dermofit
 This is a paid dataset sourced by the University of Edinburgh, it contains 1,300 samples of high quality skin lesions. [1]
 
-### Dermatomyositis 
+#### Dermatomyositis 
 This is a private dataset [Van Buren et al.] [2] of autoimmunity biopsies of 198 samples. This is a multi-label class classification. For train/validation/test splits we follow an 80/10/10 split.
 
-### ISIC-2017
+#### ISIC-2017
 This is a collection of 2000 lesion images in JPEG format and 2000 corresponding superpixel masks in PNG format, with EXIF data stripped. For retrieval of data, please download the raw data (including train, validation and test sets) from [ISIC Challenge Dataset](https://challenge.isic-archive.com/data/#2017) using `wget` and save the data into `../dataset/ISIC2017/original_data` folder. 
 
-### Preprocessing
+## Preprocessing
 
 See [Data-Efficient Deep Learning model for Dermatomyositis and Dermfit](https://github.com/LuoyaoChen/DEDL_Semisupervised) repository in `Image_Preprocessing` folder for details in pre-processing datasets and saving preprocessed datasets into destinated folder. 
 
@@ -66,11 +66,13 @@ Please use `environment.yml` file to install all required dependencies.
 
 ## Usage
 ### Exploration of Files
-- `model/` directory 
-If follows the next section properly, `model/` directory should be automatically generated with `model/${save_dir}` subdirectory that contains all training records and saved trained model from the training. 
+- `model/` directory
+
+    If follows the next section properly, `model/` directory should be automatically generated with `model/${save_dir}` subdirectory that contains all training records and saved trained model from the training. 
 
 - `code/` directory 
-The repository is structured in a way such that all necessary coding files are listed in `code/` directory. Within this directory, current parameter setting should already aligns with preprocessed data size (e.g., each interpolated image has a size of `224*224`). However, if parameter setting needs further update, please update `code/configs/`,  `code/networks/` and `code/config.py` correspondingly. 
+    
+    The repository is structured in a way such that all necessary coding files are listed in `code/` directory. Within this directory, current parameter setting should already aligns with preprocessed data size (e.g., each interpolated image has a size of `224*224`). However, if parameter setting needs further update, please update `code/configs/`,  `code/networks/` and `code/config.py` correspondingly. 
     - `code/pretrained_ckpt` utilize the same Swin-Transformer pretrained model as SSL4MIS, please download the model following its readme correspondingly. 
     - `code/train_CT_between_cnn_transformer_2D.py` is the main training file for training semi-supervised model with different labeled ratio. Please utilize the file according to the below procedure. 
     - `code/val_2D.py` and `code/test_2D.py` implements the `dice, hd95, asd, iou` score for validation sets and test sets. Note that validation score is already included in the training process.
