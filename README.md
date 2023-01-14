@@ -6,10 +6,10 @@ This repo is a replication of [Semi-supervised Learning for Medical Image Segmen
 We currently support three datasets listed below: 
 
 #### Dermofit
-This is a paid dataset sourced by the University of Edinburgh, it contains 1,300 samples of high quality skin lesions. [[1]]
+This is a paid dataset sourced by the University of Edinburgh, and it contains 1,300 samples of high quality skin lesions. [[1]]
 
 #### Dermatomyositis 
-This is a private dataset [Van Buren et al.] [[2]] of autoimmunity biopsies of 198 samples. This is a multi-label class classification.
+This is a private dataset [Van Buren et al.] [[2]] of autoimmunity biopsies of 198 samples. 
 
 #### ISIC-2017
 This is a collection of 2000 lesion images in JPEG format and 2000 corresponding superpixel masks in PNG format, with EXIF data stripped. For retrieval of data, please download the raw data (including train, validation and test sets) from [ISIC Challenge Dataset](https://challenge.isic-archive.com/data/#2017) using `wget` and save the data into `../dataset/ISIC2017/original_data` folder. 
@@ -101,7 +101,7 @@ python train_CT_between_cnn_transformer_2D.py.py
 - `labeled_num` is the percentage (number) of labeled data (e.g. if one want a 30% of training data, will be `--labeled_num 30p`, or if one want a specific number of labeled training samples, one should utilize the `patient_to_slice()` method to input desired number of labeled samples)
 - `labeled_bs` is the batch size, it sets default to be 16. 
 - `seed` indicates which random seed to be used in training. 
-- `data_class` indicates which dataset to be used. 
+- `data_class` indicates which dataset to be used
     - `1`: interpolatd Dermofit dataset
     - `2`: tiled Dermatomyositis dataset
     - `3`: interpolatd Dermatomyositis dataset
@@ -115,9 +115,9 @@ python test_2D.py
     --one_or_two ${test_model} 
     --data_class ${data_class}
 ```
-- `exp` is the saved directory for training model. 
+- `exp` is the saved directory for training model 
 - `labeled_num` is the percentage (number) of labeled data 
-- `one_or_two` indicates whether to use model1 or model2 as the model target to test model performance 
+- `one_or_two` indicates which model will be used in testing the model performance 
 - `data_class` indicates which dataset to be used. 
 
 Note that the `data_class`,  `labeled_num`, `exp` args should be exactly the same to the tranining configurations, otherwise the test result isn't accurate.
