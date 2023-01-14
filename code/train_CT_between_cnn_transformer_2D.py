@@ -123,6 +123,11 @@ elif args.data_class == 3:
     TILE_IMAGE_PATH = '../../dataset/Dermatomyositis/interpolateOnly_image/'
     TILE_LABEL_PATH = '../../dataset/Dermatomyositis/interpolateOnly_label/'
 
+elif args.data_class == 4:
+    DATA_PATH = '../../dataset/ISIC2017/original_data/'
+    TILE_IMAGE_PATH = '../../dataset/ISIC2017/resize_image/'
+    TILE_LABEL_PATH = '../../dataset/ISIC2017/resize_label/'
+
 
 print(torch.cuda.is_available())
 def kaiming_normal_init_weight(model):
@@ -145,25 +150,23 @@ def xavier_normal_init_weight(model):
     return model
 
 
-def patients_to_slices(dataset, patiens_num, traindataset_len, UsePercentage_flag = False):
+def patients_to_slices(dataclass, patiens_num, traindataset_len, UsePercentage_flag = False):
+    # this method splits the dataset into labeled and unlabeled train dataset based on either percentage flags or customed number of labeled instance
     ref_dict = None
     ref_dict_percentage = {"10p": round(0.1*traindataset_len), "30p": round(0.3*traindataset_len), "50p": round(0.5*traindataset_len),
                         "70p": round(0.7*traindataset_len), "99p": traindataset_len-1, "100p": 1*traindataset_len} 
-    if "ACDC" in dataset:
+    if dataclass == 1: #Dermofit
         ref_dict = {"3": 68, "7": 136,
                     "14": 256, "21": 396, "28": 512, "35": 664, "140": 1312}
-    elif "Dermofit" in dataset:
+    elif dataclass == 2: # Dermatomyositits
         ref_dict = {"3": 68, "7": 136,
                     "14": 256, "21": 396, "28": 512, "35": 664, "140": 1312}
-    elif "Dermatomyositis" in dataset:
-        ref_dict = {"3": 68, "7": 136,
-                    "14": 256, "21": 396, "28": 512, "35": 664, "140": 1312}
-    elif  "Dermato_interpolated" in dataset:
+    elif dataclass == 3: # interpolated Dermatomyositits
         ref_dict = {"3": 68, "7": 136,
                     "14": 256, "21": 396, "28": 512, "35": 664, "140": 121}
-    elif "Prostate":
-        ref_dict = {"2": 27, "4": 53, "8": 120,
-                    "12": 179, "16": 256, "21": 312, "42": 623}
+    elif dataclass == 4: # interpolated ISIC 2017
+        ref_dict = {"3": 68, "7": 136,
+                    "14": 256, "21": 396, "28": 512, "35": 664, "140": 121}
     else:
         print("Error")
    
@@ -193,7 +196,7 @@ def train(args, snapshot_path):
 
     def create_model(ema=False):
         # Network definition
-        model = net_factory(args, config, net_type=args.model, in_chns=3 if args.data_class ==1 else 1, 
+        model = net_factory(args, config, net_type=args.model, in_chns=3 if (args.data_class==1 or args.data_class==4) else 1, 
                             class_num=num_classes)
         if ema:
             for param in model.parameters():
@@ -216,10 +219,14 @@ def train(args, snapshot_path):
     def worker_init_fn(worker_id):
         random.seed(args.seed + worker_id)
 
+    # db_train = BaseDataSets(base_dir=args.root_path, split="train", num=None, transform=transforms.Compose([
+    #     RandomGenerator(args.patch_size)
+    # ]))
+    # db_val = BaseDataSets(base_dir=args.root_path, split="val")
     db_train, db_val, db_test,  _, _, _ = build_dataset_ssl(DATA_PATH, TILE_IMAGE_PATH, TILE_LABEL_PATH, args.data_class, args.patch_size)
 
     total_slices = len(db_train)
-    labeled_slice = patients_to_slices(args.root_path, args.labeled_num, len(db_train), UsePercentage_flag=True)
+    labeled_slice = patients_to_slices(args.data_class, args.labeled_num, len(db_train), UsePercentage_flag=True)
     # print("Total silices is: {}, labeled slices is: {}".format(
     #     total_slices, labeled_slice))
     logging.info("Total silices is: {}, labeled slices is: {}".format(

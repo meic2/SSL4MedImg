@@ -181,6 +181,55 @@ def build_dataset(data_path, tile_image_path, tile_label_path,
                 validation_list.append([(image, label)])
             elif image[:-11] in test_lis:
                 test_list.append([(image, label)])
+    elif dataclass == 4:  #ISIC2017
+        train_origin_data='ISIC-2017_Training_Data/'
+        train_origin_label='ISIC-2017_Training_Part1_GroundTruth/'
+        val_origin_data='ISIC-2017_Validation_Data/'
+        val_origin_label='ISIC-2017_Validation_Part1_GroundTruth/'
+        test_origin_data='ISIC-2017_Test_v2_Data/'
+        test_origin_label='ISIC-2017_Test_v2_Part1_GroundTruth/'
+
+        train_percent = 0.8
+        validation_percent = 0.1
+        ## remained 0.1 are test 
+
+        train = []
+        validation = []
+        test = []
+        for path in os.listdir(data_path):
+            if path[-3:] == 'zip':
+                continue
+            if path[-4:] == "Data": 
+                for path2 in os.listdir(data_path+path):
+                    if path2[-3:] == 'txt':
+                        continue
+                    if 'superpixel' in path2 or 'metadata' in path2:
+                        continue
+                    if 'Training' in path:
+                        train.append(path2[:-4])
+                    elif 'Validation' in path:
+                        validation.append(path2[:-4])
+                    else:
+                        test.append(path2[:-4])
+        ## make sure the split has no overlap
+        assert len(set(train).intersection(set(validation))) == 0
+        assert len(set(train).intersection(set(test))) == 0
+        assert len(set(validation).intersection(set(test))) == 0
+            ## add suffix using the prefix
+        all_images = sorted(list(os.listdir(tile_image_path)))
+        all_labels = sorted(list(os.listdir(tile_label_path)))
+
+        train_list = []
+        validation_list = []
+        test_list = []
+
+        for image, label in zip(all_images, all_labels):
+            if image[:-11] in train:
+                train_list.append([(image, label)])
+            elif image[:-11] in validation:
+                validation_list.append([(image, label)])
+            elif image[:-11] in test:
+                test_list.append([(image, label)])
     else: 
         # Dermatomyositis
         data_file = os.listdir(data_path+"CD27_Panel_Component/")
@@ -194,12 +243,6 @@ def build_dataset(data_path, tile_image_path, tile_label_path,
         X_train, X_val, _, _ = train_test_split(X_train, y_train, test_size=0.125, random_state=43)
         # print(f"X_train {X_train}, X_val: {X_val}")
         if dataclass==2:
-            # train_list = [[(_ + '_data_' + str(idx) + '.npy',  _ + '_mask_' + str(idx) + '.npy') for idx in range(12)] 
-            #             for _ in selected_data if _[:13] in ['121919_Myo089', '121919_Myo253', '121919_Myo368']]
-            # validation_list = [[(_ + '_data_' + str(idx) + '.npy', _ + '_mask_' + str(idx) + '.npy') for idx in range(12)] 
-            #                 for _ in selected_data if _[:13] in ['121919_Myo208', '121919_Myo388']]
-            # test_list = [[(_ + '_data_' + str(idx) + '.npy', _ + '_mask_' + str(idx) + '.npy') for idx in range(12)] 
-            #             for _ in selected_data if _[:13] in ['121919_Myo231', '121919_Myo511']]
             train_list = [[(_ + '_data_' + str(idx) + '.npy',  _ + '_mask_' + str(idx) + '.npy') for idx in range(12)] 
                         for _ in X_train]
             validation_list = [[(_ + '_data_' + str(idx) + '.npy', _ + '_mask_' + str(idx) + '.npy') for idx in range(12)] 
@@ -208,12 +251,6 @@ def build_dataset(data_path, tile_image_path, tile_label_path,
                         for _ in X_test]
         
         if dataclass==3: #interpolation only contains one interpolated image per one raw image
-            # train_list = [[(_ + '_data'  + '.npy',  _ + '_mask' + '.npy')]
-            #             for _ in selected_data if _[:13] in ['121919_Myo089', '121919_Myo253', '121919_Myo368']]
-            # validation_list = [[(_ + '_data' + '.npy', _ + '_mask' + '.npy')] 
-            #                 for _ in selected_data if _[:13] in ['121919_Myo208', '121919_Myo388']]
-            # test_list = [[(_ + '_data' + '.npy', _ + '_mask' + '.npy')] 
-            #             for _ in selected_data if _[:13] in ['121919_Myo231', '121919_Myo511']]
             train_list = [[(_ + '_data'  + '.npy',  _ + '_mask' + '.npy')]
                         for _ in X_train]
             validation_list = [[(_ + '_data' + '.npy', _ + '_mask' + '.npy')] 
