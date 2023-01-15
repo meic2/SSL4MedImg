@@ -52,8 +52,8 @@ root -
                 |- ...
             |- tile_image
             |- tile_label
-            |- resie_image
-            |- resize_label
+            |- interpolated_image
+            |- interpolated_label
 ```
 ## Requirement 
 Please make sure your Singularity Overlays still have more then 13GB space.
