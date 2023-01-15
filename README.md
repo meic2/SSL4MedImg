@@ -26,7 +26,7 @@ root -
         |- code
             |- train_CT_between_cnn_transformer_2D.py
             |- ...
-        |- model (auto-generated)
+        |- environment.yml
         |- README.md
         |- ....
     |- dataset
