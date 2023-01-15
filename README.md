@@ -84,7 +84,21 @@ git clone https://github.com/HiLab-git/SSL4MedImg.git
 cd SSL4MedImg
 ```
 
-2. Download, process, and put the data in `../dataset/Dermatomyositis, ../dataset/Dermofit, ../dataset/ISIC2017` folder. Download pretrained package to `code/pretrained_ckpt/` directory following its README.
+2. Data and check points:
+
+    1. Please download, process, and put the data in `../dataset/Dermatomyositis`, `../dataset/Dermofit`, and  `../dataset/ISIC2017` folder. 
+    2. For Image preprocessing, Please use the code from [Jupyter Notebook](https://github.com/LuoyaoChen/DEDL_Semisupervised) or [Python File](https://github.com/JinqianPan/DEDL_Semisupervised_code_version) (two repositories' code are same).
+    3. Please download pretrained check points from https://drive.google.com/drive/folders/1UC3XOoezeum0uck4KBVGa8osahs6rKUY and put it int `code/pretrained_ckpt/` directory.
+
+3. Environmental installation:
+
+Please make sure your Singularity Overlays still have more then 13GB space.
+
+ And run the code below:
+```
+conda env create -f environment.yml
+```
+After running code, You will get a python environment called `ssl`, and all the required packages of this repo will be installed. 
 
 3. Train the model(change setting based on specific args)
 ```
