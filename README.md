@@ -56,7 +56,7 @@ root -
             |- interpolated_label
 ```
 ## Requirement 
-Please make sure your Singularity Overlays still have more then 13GB space.
+Please make sure your Singularity Overlays still have more than 13GB capacity.
 
  And run the code below:
 ```
