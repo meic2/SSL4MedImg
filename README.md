@@ -66,13 +66,13 @@ cd SSL4MedImg
 
 2. Environmental installation：
 
-    Please make sure your Singularity Overlays still have more than 13GB capacity.
+Please make sure your Singularity Overlays still have more than 13GB capacity.
 
-    And run the code below:
+And run the code below:
 ```
 conda env create -f environment.yml
 ```
-    After running code, You will get a python environment called `ssl`, and all the required packages of this repo will be installed. 
+After running code, You will get a python environment called `ssl`, and all the required packages of this repo will be installed. 
 
 3. Check points:
 
