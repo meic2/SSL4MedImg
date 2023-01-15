@@ -55,14 +55,28 @@ root -
             |- interpolated_image
             |- interpolated_label
 ```
-## Requirement 
-Please make sure your Singularity Overlays still have more than 13GB capacity.
+## Install 
 
- And run the code below:
+1. Clone the repo:
+
+```
+git clone https://github.com/HiLab-git/SSL4MedImg.git
+cd SSL4MedImg
+```
+
+2. Environmental installation：
+
+    Please make sure your Singularity Overlays still have more than 13GB capacity.
+
+    And run the code below:
 ```
 conda env create -f environment.yml
 ```
-After running code, You will get a python environment called `ssl`, and all the required packages of this repo will be installed. 
+    After running code, You will get a python environment called `ssl`, and all the required packages of this repo will be installed. 
+
+3. Check points:
+
+    Please download pretrained check points from https://drive.google.com/drive/folders/1UC3XOoezeum0uck4KBVGa8osahs6rKUY and put it int `code/pretrained_ckpt/` directory.
 
 ## Usage
 ### Exploration of Files
@@ -83,19 +97,11 @@ Here listed the usage for each directory/files in this repo.
 ### Example Procedure
 The overall routine of the training/testing procedure are as follows: 
 
-1. Clone the repo:
+1. Data:
 
-```
-git clone https://github.com/HiLab-git/SSL4MedImg.git
-cd SSL4MedImg
-```
+    Please download, process, and put the data in `../dataset/Dermatomyositis`, `../dataset/Dermofit`, and  `../dataset/ISIC2017` folder. 
 
-2. Data and check points:
-
-    1. Please download, process, and put the data in `../dataset/Dermatomyositis`, `../dataset/Dermofit`, and  `../dataset/ISIC2017` folder. 
-    2. Please download pretrained check points from https://drive.google.com/drive/folders/1UC3XOoezeum0uck4KBVGa8osahs6rKUY and put it int `code/pretrained_ckpt/` directory.
-
-3. Train the model(change setting based on specific args)
+2. Train the model(change setting based on specific args)
 ```
 cd code
 python train_CT_between_cnn_transformer_2D.py.py 
