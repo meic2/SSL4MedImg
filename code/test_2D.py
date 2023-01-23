@@ -80,11 +80,13 @@ elif FLAGS.data_class ==2:
     TILE_IMAGE_PATH = '../../dataset/Dermatomyositis/tile_image/'
     TILE_LABEL_PATH = '../../dataset/Dermatomyositis/tile_label/'
 elif FLAGS.data_class ==3:
-    DATA_PATH = '/scratch/lc4866/dataset/Dermatomyositis/original_data/'
-    TILE_IMAGE_PATH = '/scratch/lc4866/dataset/Dermatomyositis/InterpolateOnly_image/'
-    TILE_LABEL_PATH = '/scratch/lc4866/dataset/Dermatomyositis/InterpolateOnly_label/'
-
-
+    DATA_PATH = '../../dataset/Dermatomyositis/original_data/'
+    TILE_IMAGE_PATH = '../../dataset/Dermatomyositis/InterpolateOnly_image/'
+    TILE_LABEL_PATH = '../../dataset/Dermatomyositis/InterpolateOnly_label/'
+elif FLAGS.data_class ==4:
+    DATA_PATH = '../../dataset/ISIC2017/original_data/'
+    TILE_IMAGE_PATH = '../../dataset/ISIC2017/resize_image/'
+    TILE_LABEL_PATH = '../../dataset/ISIC2017/resize_label/'
 def calculate_metric_iou(pred, label):
     pred = torch.tensor(pred)
     label = torch.tensor(label)
@@ -173,7 +175,7 @@ def Inference(FLAGS):
     os.makedirs(test_save_path)
     if FLAGS.one_or_two == 1:   ## CNN
         print('testing model1 (UNET)...')
-        net = net_factory(FLAGS, config, net_type=FLAGS.model, in_chns=3 if FLAGS.data_class == 1 else 1,
+        net = net_factory(FLAGS, config, net_type=FLAGS.model, in_chns=3 if (FLAGS.data_class == 1 or FLAGS.data_class == 4) else 1,
                         class_num=FLAGS.num_classes)
     elif FLAGS.one_or_two == 2: ## transformer
         print('testing model2 (SwinTransformer)...')

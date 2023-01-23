@@ -14,3 +14,4 @@ code/*.sh
 code/**.sbatch
 hpc_sbatch/**.sbatch
 *.sbatch
+**/**.sh
