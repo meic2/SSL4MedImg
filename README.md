@@ -16,7 +16,7 @@ This is a collection of 2000 lesion images in JPEG format and 2000 corresponding
 
 ## Preprocessing
 
-See [Data-Efficient Deep Learning model for Dermatomyositis and Dermfit](https://github.com/LuoyaoChen/DEDL_Semisupervised) repository in `Image_Preprocessing` folder for details of pre-processing. Specifically, in previous experiments we utilized interpolation/tiling method to process all raw images/label sets into the same size. 
+See [Data-Efficient Deep Learning model for Dermatomyositis and Dermfit](https://github.com/JinqianPan/DEDL_Semisupervised_code_version) repository in `Image_Preprocessing` folder for details of pre-processing. Specifically, in previous experiments we utilized interpolation/tiling method to process all raw images/label sets into the same size. 
 
 To make sure the training procedure to be as smoothly as possible, we advise to structure the `dataset/` folder as follows: 
 

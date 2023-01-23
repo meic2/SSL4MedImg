@@ -175,6 +175,8 @@ def patients_to_slices(dataset, patiens_num, traindataset_len, UsePercentage_fla
     else:
         return ref_dict[str(patiens_num)]
 
+def count_parameters(model):
+    return sum(p.numel() for p in model.parameters() if p.requires_grad)
 
 def get_current_consistency_weight(epoch):
     # Consistency ramp-up from https://arxiv.org/abs/1610.02242
@@ -206,8 +208,11 @@ def train(args, snapshot_path):
     model1 = create_model()
     model2 = ViT_seg(config, img_size=args.patch_size,
                      num_classes=args.num_classes).cuda()
+    
     model2.load_from(config)
     AE = Autoencoder().cuda()
+    count_parameters(model1)
+    count_parameters(model2)
 
     def worker_init_fn(worker_id):
         random.seed(args.seed + worker_id)

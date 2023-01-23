@@ -3,11 +3,10 @@
 # ignore ALL auto-produced files
 model/
 data/
-
+code/*.sh
 **/__pycache__/
 **/**/__pycache__/
 **.pth
-code/train.sbatch
 **.out
 .ipynb_checkpoints/
 **/.ipynb_checkpoints/
@@ -16,3 +15,21 @@ code/**.sbatch
 hpc_sbatch/**.sbatch
 *.sbatch
 **/**.sh
+## code_version gitignore
+KFold_pt/**
+Saved_model/**
+Segmentation_APP_dermofit/*.sbatch
+Segmentation_APP_dermofit/*.sh
+**.out
+*.pyc
+*.SBATCH
+*.out
+*.pt
+**/**/saved_model/
+**/**/saved_metric/
+**/**/metric_save/
+**/**/tensorboard_runs/
+**/**/output_file/
+*.csv
+Segmentation_APP_dermofit/__pycache__/dataloader.cpython-39.pyc
+Segmentation_APP_dermofit/__pycache__/**
