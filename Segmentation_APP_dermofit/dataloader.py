@@ -89,8 +89,8 @@ def build_dataloader(data_path, tile_image_path, tile_label_path,
         train_lis_image, train_lis_mask, val_lis_image, val_lis_mask = find_local_tile_image_label(train_csv,
                                                                                                    mapping_txt,
                                                                                                    KthFold=KthFold)
-        test_lis_image = all_images - train_lis_image - val_lis_image
-        test_lis_mask = all_labels - train_lis_mask - val_lis_mask
+        test_lis_image = list((set(all_images).difference(set(train_lis_image))).difference(set(val_lis_image)))
+        test_lis_mask = list((set(all_labels).difference(set(train_lis_mask))).difference(set(val_lis_mask)))
         for image, label in zip(train_lis_image, train_lis_mask):
             train_list.append([(image, label)])
         for image, label in zip(val_lis_image, val_lis_mask):

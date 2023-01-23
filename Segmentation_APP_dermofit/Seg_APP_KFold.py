@@ -19,6 +19,9 @@ from utili import save_metric
 from test_model import test_model_func
 from scipy import ndimage, misc
 
+from torch.utils.tensorboard import SummaryWriter
+
+
 import argparse
 parser = argparse.ArgumentParser(description = "Model Parameter Setting")
 
@@ -144,6 +147,8 @@ def train_model(dataloader,
                 model_name,
                 ae_flag,
                 num_epochs=20):
+    writer = SummaryWriter(
+        log_dir='/scratch/lc4866/DEDL_Semisupervised_code_version/Segmentation_APP_dermofit/tensorboard_runs')
     train_acc = []
     train_acc_mask = []
     train_acc_bg = []
@@ -161,7 +166,7 @@ def train_model(dataloader,
     best_iou = 0
     counter = 0
     last_val = 0
-
+    iter = 0
     train_val_time = timedelta(0)
 
     for epoch in range(num_epochs):
@@ -221,6 +226,8 @@ def train_model(dataloader,
                 loss = loss1 + loss2
             else:
                 loss = loss1
+            writer.add_scalar('loss',loss.item(), iter)
+            iter +=1
             # print('loss.dtype:', loss.dtype)
             # loss.dtype: torch.float32
             # print("loss1.dtype, loss2.dtype: ", loss1.dtype, loss2.dtype)
@@ -232,6 +239,7 @@ def train_model(dataloader,
             scheduler.step()
             # Calculate total loss
             total_loss += loss.item()
+            print("loss: ", loss.item())
 
             # Get the metric
             tp, fp, fn, tn = smp.metrics.get_stats(pred, mask.long(), mode='multilabel', threshold=0.5)
@@ -408,7 +416,8 @@ if __name__ == "__main__":
         pretrained_pt = f"../KFold_pt/CASS/224/CASS with Swin/ResNet50/swin-base-r50-r50part-{args.KthFold}-dermofit-224-seg.pt"
     elif args.CASSorDINO == "DINO":
         pretrained_pt = f"../KFold_pt/DINO/224/r50-dino-{args.KthFold}-dermofit-224-seg.pt"
-    model.encoder = torch.load(pretrained_pt)
+    # model.encoder = torch.load(pretrained_pt)
+    model.encoder.load_state_dict(torch.load(pretrained_pt).state_dict(), strict=False)
     print(
         f"successfully load pretrained {args.CASSorDINO} model from dir = {pretrained_pt}!")
     model = model.to(device)

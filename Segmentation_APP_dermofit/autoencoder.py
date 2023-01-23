@@ -6,7 +6,7 @@ class AutoencoderReLu(nn.Module):
     def __init__(self):
         super(AutoencoderReLu, self).__init__()
         # encoder
-        self.enc1 = nn.Linear(in_features=480, out_features=15360) 
+        self.enc1 = nn.Linear(in_features=224, out_features=15360) 
         self.encmid = nn.Linear(in_features=15360, out_features=256)
         self.enc2 = nn.Linear(in_features=256, out_features=128)
         self.enc3 = nn.Linear(in_features=128, out_features=64)
@@ -18,7 +18,7 @@ class AutoencoderReLu(nn.Module):
         self.dec2 = nn.Linear(in_features=32, out_features=64)
         self.dec3 = nn.Linear(in_features=64, out_features=128)
         self.dec4 = nn.Linear(in_features=128, out_features=256)
-        self.dec5 = nn.Linear(in_features=256, out_features=480) 
+        self.dec5 = nn.Linear(in_features=256, out_features=224) 
 
     def forward(self, x):
         x = F.relu(self.enc1(x))
@@ -39,7 +39,7 @@ class AutoencoderGeLu(nn.Module):
     def __init__(self):
         super(AutoencoderGeLu, self).__init__()
         # encoder
-        self.enc1 = nn.Linear(in_features=480, out_features=15360) 
+        self.enc1 = nn.Linear(in_features=224, out_features=15360) 
         self.encmid = nn.Linear(in_features=15360, out_features=256)
         self.enc2 = nn.Linear(in_features=256, out_features=128)
         self.enc3 = nn.Linear(in_features=128, out_features=64)
@@ -51,7 +51,7 @@ class AutoencoderGeLu(nn.Module):
         self.dec2 = nn.Linear(in_features=32, out_features=64)
         self.dec3 = nn.Linear(in_features=64, out_features=128)
         self.dec4 = nn.Linear(in_features=128, out_features=256)
-        self.dec5 = nn.Linear(in_features=256, out_features=480) 
+        self.dec5 = nn.Linear(in_features=256, out_features=224) 
 
     def forward(self, x):
         x = F.gelu(self.enc1(x))

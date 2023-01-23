@@ -9,6 +9,9 @@ Segmentation_APP_dermofit/*.sh
 *.pt
 **/**/saved_model/
 **/**/saved_metric/
+**/**/metric_save/
+**/**/tensorboard_runs/
 **/**/output_file/
 *.csv
 Segmentation_APP_dermofit/__pycache__/dataloader.cpython-39.pyc
+Segmentation_APP_dermofit/__pycache__/**
