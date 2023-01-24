@@ -5,14 +5,32 @@ This repo is adapted from [Semi-supervised Learning for Medical Image Segmentati
 ## Data 
 We currently support three datasets listed below: 
 
-#### Dermofit
-This is a paid dataset sourced by the University of Edinburgh, and it contains 1,300 samples of high quality skin lesions, each with different size. [[1]]
 
 #### Dermatomyositis 
 This is a private dataset [Van Buren et al.] [[2]] of autoimmunity biopsies of 198 samples, each contains 8 slices, produced by different coloring materials. Each slice has size 1408 × 1876. Our work uses the first slide from TIFF images, i.e. a DAPI-stained image for segmentation. 
 
+Below shows visualizations of the dataset's image and mask respectively.
+
+<p align="middle">
+  <img src="fig/Dermatomyositis_data.png" width="200" />
+  <img src="fig/Dermatomyositis_label.png" width="200" /> 
+</p>
+
+
+#### Dermofit
+This is a paid dataset sourced by the University of Edinburgh, and it contains 1,300 samples of high quality skin lesions, each with different sizes.[[1]]
+
+Below shows visualizations of the dataset's image and mask respectively.
+
+
+<p align="middle">
+  <img src="fig/dermofit_data.png" width="220" />
+  <img src="fig/dermofit_gt.png" width="220" /> 
+</p>
+
 #### ISIC-2017
-This is a collection of 2000 lesion images in JPEG format and 2000 corresponding superpixel masks in PNG format, with EXIF data stripped. For retrieval of data, please download the raw data (including train, validation and test sets) from [ISIC Challenge Dataset](https://challenge.isic-archive.com/data/#2017) using `wget` and save the data into `../dataset/ISIC2017/original_data` folder. 
+This is a collection of 2000 lesion images in JPEG format and 2000 corresponding superpixel masks in PNG format, with EXIF data stripped. For retrieval of data, please download the raw data (including train, validation and test sets) from [ISIC Challenge Dataset](https://challenge.isic-archive.com/data/#2017) using `wget` and save the data into `../dataset/ISIC2017/original_data` folder. The visualization is similar to that of Dermofit.
+
 
 ## Preprocessing and folder structures
 
@@ -59,20 +77,18 @@ root -
 
 1. Clone the repo:
 
-```
-git clone https://github.com/HiLab-git/SSL4MedImg.git
-cd SSL4MedImg
-```
+    ```
+    git clone https://github.com/HiLab-git/SSL4MedImg.git
+    cd SSL4MedImg
+    ```
 
 2. Environmental installation：
 
-Please make sure your Singularity Overlays still have more than 13GB capacity. We used 50GB singularity supported by NYU.
-
-And run the code below:
-```
-conda env create -f environment.yml
-```
-After running code, You will get a conda environment named `ssl`, all the required packages of this repo will be installed. 
+    Please make sure your Singularity Overlays still have more than 13GB capacity (We used 50GB singularity supported by NYU), and run the code below:
+    ```
+    conda env create -f environment.yml
+    ``` 
+    After running code, You will get a conda environment named `ssl`, all the required packages of this repo will be installed. 
 
 3. Check points for the pretrained Swin-transformer:
 
@@ -101,7 +117,11 @@ The overall routine of the training/testing procedure are as follows:
 
 ### Step1: Download data
 
-    Please download, process, and put the data in `../dataset/Dermatomyositis`, `../dataset/Dermofit`, and  `../dataset/ISIC2017` folder. 
+    Please download, process, and put the data in 
+    
+    `../dataset/Dermatomyositis`, 
+    `../dataset/Dermofit`, and  
+    `../dataset/ISIC2017` folder. 
 
 ### Step2: Train the model(change setting based on specific args)
 
