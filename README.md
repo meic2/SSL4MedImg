@@ -145,7 +145,9 @@ Note that the `data_class`,  `labeled_num`, `exp` args should be exactly the sam
 
 # Contents of folders: Explained
 
-- `code/train_CT_between_cnn_transformer_2D.py` is the training file for training semi-supervised model with different labeled ratio. Please utilize the file flowing the description below. 
+- `code/train_CT_between_cnn_transformer_2D.py` is the training file for training semi-supervised cross teaching model with different labeled ratio. Please utilize the file flowing the description below. 
+
+- `code/train_CT_between_cnn_transformer_2D_withAE.py` is the training file for training semi-supervised cross teaching model, with auto-encoder added as described in [DEDL](https://arxiv.org/abs/2207.06489), with different labeled ratio. 
 
 - `code/val_2D.py` and `code/test_2D.py` implements the `dice, hd95, asd, iou` score for validation sets and test sets. Note that validation score is already included in the training process.
 
@@ -155,6 +157,8 @@ Other Notes:
 - `code/dataloaders/dermofit_processing` contains the functions that build the datasets `train_dataset`, `val_dataset`, `test_dataset`
 
 - `code/pretrained_ckpt` utilize the same Swin-Transformer pretrained model as SSL4MIS repository, please download the model following `code/pretrained_ckpt/README.md` correspondingly. 
+
+- `code/read_output.py`: the file to format the sbatch outputs.
 
 - `model/` directory (auto-generated after training)
 
