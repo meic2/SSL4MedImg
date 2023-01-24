@@ -1,6 +1,6 @@
 # SSL4MedImg
 
-This repo is adapted from [Semi-supervised Learning for Medical Image Segmentation (SSL4MIS)](https://github.com/HiLab-git/SSL4MIS/tree/master/code) that implements the *Cross Teaching Between CNN and Transformer*'s application to three different datasets listed below. 
+This repo is adapted from [Semi-supervised Learning for Medical Image Segmentation (SSL4MIS)](https://github.com/HiLab-git/SSL4MIS/tree/master/code) that implements the [*Cross Teaching Between CNN and Transformer*'s](https://openreview.net/forum?id=KUmlnqHrAbE)[3] application to three different datasets listed below. 
 
 ## Data 
 We currently support three datasets listed below: 
@@ -94,24 +94,6 @@ root -
 
     Please download pretrained check points from https://drive.google.com/drive/folders/1UC3XOoezeum0uck4KBVGa8osahs6rKUY and put it int `code/pretrained_ckpt/` directory.
 
-
-## Contents of folders: Explained
-
-- `code/train_CT_between_cnn_transformer_2D.py` is the training file for training semi-supervised model with different labeled ratio. Please utilize the file flowing the description below. 
-
-- `code/val_2D.py` and `code/test_2D.py` implements the `dice, hd95, asd, iou` score for validation sets and test sets. Note that validation score is already included in the training process.
-
-Other Notes:
-- `code/` directory: Within this directory, current parameter setting already aligns with preprocessed data size (e.g., each interpolated image has a size of `224*224`). However, if parameter setting needs a further update, please change `code/configs/`,  `code/networks/` and `code/config.py` correspondingly. 
-
-- `code/dataloaders/dermofit_processing` contains the functions that build the datasets `train_dataset`, `val_dataset`, `test_dataset`
-
-- `code/pretrained_ckpt` utilize the same Swin-Transformer pretrained model as SSL4MIS repository, please download the model following `code/pretrained_ckpt/README.md` correspondingly. 
-
-- `model/` directory (auto-generated after training)
-
-    If properly run, `model/` directory should be automatically generated with `model/${save_dir}` subdirectory that contains all training records and saved trained model from the training. 
-
 ## Usage:
 The overall routine of the training/testing procedure are as follows: 
 
@@ -161,8 +143,29 @@ python test_2D.py
 
 Note that the `data_class`,  `labeled_num`, `exp` args should be exactly the same to the tranining configurations, otherwise the test result will not be accurate.
 
+## Contents of folders: Explained
+
+- `code/train_CT_between_cnn_transformer_2D.py` is the training file for training semi-supervised model with different labeled ratio. Please utilize the file flowing the description below. 
+
+- `code/val_2D.py` and `code/test_2D.py` implements the `dice, hd95, asd, iou` score for validation sets and test sets. Note that validation score is already included in the training process.
+
+Other Notes:
+- `code/` directory: Within this directory, current parameter setting already aligns with preprocessed data size (e.g., each interpolated image has a size of `224*224`). However, if parameter setting needs a further update, please change `code/configs/`,  `code/networks/` and `code/config.py` correspondingly. 
+
+- `code/dataloaders/dermofit_processing` contains the functions that build the datasets `train_dataset`, `val_dataset`, `test_dataset`
+
+- `code/pretrained_ckpt` utilize the same Swin-Transformer pretrained model as SSL4MIS repository, please download the model following `code/pretrained_ckpt/README.md` correspondingly. 
+
+- `model/` directory (auto-generated after training)
+
+    If properly run, `model/` directory should be automatically generated with `model/${save_dir}` subdirectory that contains all training records and saved trained model from the training. 
+
+
+
 ## Citations:
 
 `[1]: https://licensing.edinburgh-innovations.ed.ac.uk/product/dermofit-image-library`
 
 `[2]: https://www.sciencedirect.com/science/article/abs/pii/S0022175922000205`
+
+`[3]: https://openreview.net/forum?id=KUmlnqHrAbE`
