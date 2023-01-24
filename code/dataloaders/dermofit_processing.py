@@ -111,7 +111,7 @@ class CustomDataset(Dataset):
 
     def __len__(self):
         return len(self.file_list)
-
+        
     def __getitem__(self, idx):
         inputs = np.load(self.tile_image_path + (self.file_list[idx][0]), allow_pickle=True)
         mask_label = np.load(self.tile_label_path + (self.file_list[idx][1]), allow_pickle=True)

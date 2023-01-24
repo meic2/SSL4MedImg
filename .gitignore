@@ -3,11 +3,10 @@
 # ignore ALL auto-produced files
 model/
 data/
-
+code/*.sh
 **/__pycache__/
 **/**/__pycache__/
 **.pth
-code/train.sbatch
 **.out
 .ipynb_checkpoints/
 **/.ipynb_checkpoints/
