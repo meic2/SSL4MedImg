@@ -99,11 +99,11 @@ Other Notes:
 ## Usage:
 The overall routine of the training/testing procedure are as follows: 
 
-### download data
+### Step1: Download data
 
     Please download, process, and put the data in `../dataset/Dermatomyositis`, `../dataset/Dermofit`, and  `../dataset/ISIC2017` folder. 
 
-### Train the model(change setting based on specific args)
+### Step2: Train the model(change setting based on specific args)
 
 ```
 cd code
@@ -126,7 +126,7 @@ python train_CT_between_cnn_transformer_2D.py.py
     - `4`: interpolatd ISIC2017 dataset
  - model is saved based on the criterion of iou
 
-### Test the model (either CNN or Swin-Transformer)
+### Step3: Test the model (either CNN or Swin-Transformer)
 ```
 python test_2D.py 
     --exp ${save_dir}
