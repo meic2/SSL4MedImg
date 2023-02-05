@@ -54,16 +54,17 @@ This is a collection of 2000 lesion images in JPEG format and 2000 corresponding
 
     Please download pretrained check points from https://drive.google.com/drive/folders/1UC3XOoezeum0uck4KBVGa8osahs6rKUY and put it int `code/pretrained_ckpt/` directory.
 
-# The Usage Steps:
+# Usage Flow:
 The overall routine of the training/testing procedure are as follows: 
 
 ## Step1: Download data
 
     Please download, process, and put the data in 
-    
+    ```
     `../dataset/Dermatomyositis`, 
     `../dataset/Dermofit`, and  
     `../dataset/ISIC2017` folder. 
+    ```
 
 ## Step2: Pre-process the dataset
 
