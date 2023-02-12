@@ -418,4 +418,4 @@ dependencies:
   - pip:
     - opencv-python==4.5.5.62
     - MedPy
-    - batchgenerators
+    -batchgenerators
