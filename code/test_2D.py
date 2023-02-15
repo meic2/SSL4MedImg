@@ -87,6 +87,11 @@ elif FLAGS.data_class ==4:
     DATA_PATH = '../../dataset/ISIC2017/original_data/'
     TILE_IMAGE_PATH = '../../dataset/ISIC2017/resize_image/'
     TILE_LABEL_PATH = '../../dataset/ISIC2017/resize_label/'
+elif args.data_class == 5:
+    DATA_PATH = '../../dataset/Lupus_Nephritis/'
+    TILE_IMAGE_PATH = '../../dataset/Lupus_Nephritis/tile_image/'
+    TILE_LABEL_PATH = '../../dataset/Lupus_Nephritis/tile_label/'
+
 def calculate_metric_iou(pred, label):
     pred = torch.tensor(pred)
     label = torch.tensor(label)

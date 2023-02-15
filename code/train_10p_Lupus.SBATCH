@@ -8,7 +8,7 @@
 #SBATCH --mem=32GB
 #SBATCH --mail-type=END
 #SBATCH --mail-user= ## Please add your email
-#SBATCH --output=train.out
+#SBATCH --output=train_10p_Lupus.out
 
 module purge
 ## Please change python file name in line 18
@@ -18,7 +18,7 @@ singularity exec --nv \
 	    /scratch/work/public/singularity/cuda11.2.2-cudnn8-devel-ubuntu20.04.sif \
 	    /bin/bash -c "source /ext3/miniconda3/bin/activate; conda activate ssl; \
         python train_CT_between_cnn_transformer_2D.py \
---exp 'Dermatomyositis_prototype/test' \
---data_class 2 \
+--exp 'Lupus_prototype/test' \
+--data_class 5 \
 --labeled_num '10p'  \
 --batch_size 16" 

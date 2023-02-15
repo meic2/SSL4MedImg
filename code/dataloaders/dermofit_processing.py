@@ -230,6 +230,21 @@ def build_dataset(data_path, tile_image_path, tile_label_path,
                 validation_list.append([(image, label)])
             elif image[:-11] in test:
                 test_list.append([(image, label)])
+    
+    elif dataclass == 5:
+        img_list = os.listdir(tile_image_path)
+        mask_list = os.listdir(tile_label_path)
+        prefix = ['170-II-K4']
+        full_list = [[(_ + '_data_' + str(idx) + '.npy', _ + '_mask_' + str(idx) + '.npy') for idx in range(len(img_list))] for _ in prefix]
+        train_list, test_list = train_test_split(full_list[0], test_size = 0.2, random_state=42)
+        train_list, val_list = train_test_split(train_list, test_size=0.125, random_state=43)
+        return CustomDataset(train_list, tile_image_path, tile_label_path, transform=transform_train, mode='train'), \
+               CustomDataset(val_list, tile_image_path, tile_label_path, transform=transform_val, mode='validation'), \
+               CustomDataset(test_list, tile_image_path, tile_label_path, transform=transform_test, mode='test'), \
+               train_list, \
+               val_list, \
+               test_list
+
     else: 
         # Dermatomyositis
         data_file = os.listdir(data_path+"CD27_Panel_Component/")

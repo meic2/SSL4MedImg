@@ -91,6 +91,7 @@ parser.add_argument('--eval', action='store_true',
                     help='Perform evaluation only')
 parser.add_argument('--throughput', action='store_true',
                     help='Test throughput only')
+parser.add_argument('--device', default=None, choices=['cpu', 'cuda'] , help='cuda or cpu')
 
 # label and unlabel
 parser.add_argument('--labeled_bs', type=int, default=8,
@@ -128,8 +129,18 @@ elif args.data_class == 4:
     TILE_IMAGE_PATH = '../../dataset/ISIC2017/resize_image/'
     TILE_LABEL_PATH = '../../dataset/ISIC2017/resize_label/'
 
+elif args.data_class == 5:
+    DATA_PATH = '../../dataset/Lupus_Nephritis/'
+    TILE_IMAGE_PATH = '../../dataset/Lupus_Nephritis/tile_image/'
+    TILE_LABEL_PATH = '../../dataset/Lupus_Nephritis/tile_label/'
 
 print(torch.cuda.is_available())
+device = args.device
+if device==None:
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+else:
+    device = args.device
+
 def kaiming_normal_init_weight(model):
     for m in model.modules():
         if isinstance(m, nn.Conv2d):
@@ -167,6 +178,9 @@ def patients_to_slices(dataclass, patiens_num, traindataset_len, UsePercentage_f
     elif dataclass == 4: # interpolated ISIC 2017
         ref_dict = {"3": 68, "7": 136,
                     "14": 256, "21": 396, "28": 512, "35": 664, "140": 121}
+    elif dataclass == 5: # Lupus Nephritis
+        ref_dict = {"3": 68, "7": 136,
+                    "14": 256, "21": 396, "28": 512, "35": 664, "140": 1312}
     else:
         print("Error")
    
@@ -193,7 +207,7 @@ def train(args, snapshot_path):
     num_classes = args.num_classes
     batch_size = args.batch_size
     max_iterations = args.max_iterations
-
+    import pdb; pdb.set_trace()
     def create_model(ema=False):
         # Network definition
         model = net_factory(args, config, net_type=args.model, in_chns=3 if (args.data_class==1 or args.data_class==4) else 1, 
@@ -206,7 +220,9 @@ def train(args, snapshot_path):
     model1 = create_model()
     print(config)
     model2 = ViT_seg(config, img_size=args.patch_size,
-                     num_classes=args.num_classes).cuda()
+                     num_classes=args.num_classes)
+    if device=='cuda':
+        model2 = model2.cuda()
     model2.load_from(config)
 
     def count_parameters(model):
@@ -224,7 +240,6 @@ def train(args, snapshot_path):
     # ]))
     # db_val = BaseDataSets(base_dir=args.root_path, split="val")
     db_train, db_val, db_test,  _, _, _ = build_dataset_ssl(DATA_PATH, TILE_IMAGE_PATH, TILE_LABEL_PATH, args.data_class, args.patch_size)
-
     total_slices = len(db_train)
     labeled_slice = patients_to_slices(args.data_class, args.labeled_num, len(db_train), UsePercentage_flag=True)
     # print("Total silices is: {}, labeled slices is: {}".format(
@@ -254,7 +269,8 @@ def train(args, snapshot_path):
     scheduler2 = lr_scheduler.CosineAnnealingLR(optimizer2, T_max=50, eta_min=5e-6,last_epoch=-1)
 
     ce_weights = losses.reverse_weight(losses.calculate_weights(TILE_LABEL_PATH))
-    ce_weights=torch.tensor(ce_weights).type(torch.cuda.FloatTensor)
+    ce_weights=torch.tensor(ce_weights)
+    ce_weights = ce_weights.type(torch.cuda.FloatTensor) if device=='cuda' else ce_weights.type(torch.FloatTensor)
     print(f"CE Weights are {ce_weights}")
     ce_loss = CrossEntropyLoss(reduction='mean', weight=ce_weights)
     dice_loss = losses.DiceLoss(num_classes)
@@ -267,10 +283,13 @@ def train(args, snapshot_path):
     best_performance1 = 0.0
     best_performance2 = 0.0
     iterator = tqdm(range(max_epoch), ncols=70)
+    
     for epoch_num in iterator:
         for i_batch, sampled_batch in enumerate(trainloader):
+            
             volume_batch, label_batch = sampled_batch['image'], sampled_batch['label']
-            volume_batch, label_batch = volume_batch.cuda(), label_batch.cuda()
+            if device=='cuda':
+                volume_batch, label_batch = volume_batch.cuda(), label_batch.cuda()
             # print("set(volume_batch[0]): ", set(volume_batch[0]))
             # print(f"volume_batch.shape: {volume_batch.shape}, label_batch.shape: {label_batch.shape}")
             # print("max(volume_batch[0]): ", torch.max(volume_batch[0]), "min(volume_batch[0])", torch.min(volume_batch[0]))
@@ -278,10 +297,11 @@ def train(args, snapshot_path):
             # print("max(label_batch[0]): ", torch.max(label_batch[0]), "min(label_batch[0])", torch.min(label_batch[0]))
 
             #change dimension
+            # import pdb; pdb.set_trace()
             label_batch = label_batch.squeeze(1)
             outputs1 = model1(volume_batch)
             outputs_soft1 = torch.softmax(outputs1, dim=1)
-
+            
             outputs2 = model2(volume_batch)
             outputs_soft2 = torch.softmax(outputs2, dim=1)
             consistency_weight = get_current_consistency_weight(
@@ -479,7 +499,8 @@ if __name__ == "__main__":
     random.seed(args.seed)
     np.random.seed(args.seed)
     torch.manual_seed(args.seed)
-    torch.cuda.manual_seed(args.seed)
+    if device=='cuda':
+        torch.cuda.manual_seed(args.seed)
 
     snapshot_path = "../model/{}_{}/{}".format(
         args.exp, args.labeled_num, args.model)
